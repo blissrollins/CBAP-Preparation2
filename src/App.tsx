@@ -19,7 +19,9 @@ import {
   HelpCircle,
   BarChart3,
   Sliders,
-  ChevronDown
+  ChevronDown,
+  Sun,
+  Moon
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Question, ExamSession, VerificationResult } from "./types";
@@ -105,6 +107,68 @@ export default function App() {
   // Drag and drop state
   const [dragActive, setDragDropActive] = useState<boolean>(false);
   const [customCountInput, setCustomCountInput] = useState<string>("");
+
+  // --- Calculated Helpers ---
+  const activeQuestion: Question | undefined = activeSessionQuestions[currentIndex];
+  
+  // Filter active session questions based on topic and unanswered/flagged statuses
+  const filteredQuestions = activeSessionQuestions.filter((q) => {
+    const matchesTopic = selectedTopic === "All Topics" || q.topic === selectedTopic;
+    const isAnswered = !!userAnswers[q.id];
+    const matchesFilterType = (() => {
+      if (questionFilter === "unanswered") return !isAnswered;
+      if (questionFilter === "flagged") return !flaggedQuestions[q.id] === false;
+      if (questionFilter === "incorrect") {
+        return isAnswered && userAnswers[q.id] !== q.correctAnswer;
+      }
+      return true;
+    })();
+    return matchesTopic && matchesFilterType;
+  });
+  
+  // Theme state: light or dark
+  const [theme, setTheme] = useState<"light" | "dark" | "ambient">("light");
+
+  // Global shortcut: Enter key takes you to next question
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is inside an input field or interactive form element
+      const target = e.target as HTMLElement;
+      if (
+        !target ||
+        target.tagName === "INPUT" || 
+        target.tagName === "TEXTAREA" || 
+        target.isContentEditable ||
+        target.getAttribute("role") === "textbox"
+      ) {
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        setCurrentIndex((prev) => Math.min(filteredQuestions.length - 1, prev + 1));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [filteredQuestions.length]);
+
+  // Load and apply theme mode
+  useEffect(() => {
+    const cachedTheme = (localStorage.getItem("babok_theme") as "light" | "dark" | "ambient") || "light";
+    setTheme(cachedTheme);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("babok_theme", theme);
+    const root = document.documentElement;
+    if (theme === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+  }, [theme]);
 
   // --- Initialize or Load Cached state ---
   useEffect(() => {
@@ -226,23 +290,7 @@ export default function App() {
     setActiveVerifiedId(null);
   }, [currentIndex]);
 
-  // --- Calculated Helpers ---
-  const activeQuestion: Question | undefined = activeSessionQuestions[currentIndex];
-  
-  // Filter active session questions based on topic and unanswered/flagged statuses
-  const filteredQuestions = activeSessionQuestions.filter((q) => {
-    const matchesTopic = selectedTopic === "All Topics" || q.topic === selectedTopic;
-    const isAnswered = !!userAnswers[q.id];
-    const matchesFilterType = (() => {
-      if (questionFilter === "unanswered") return !isAnswered;
-      if (questionFilter === "flagged") return !flaggedQuestions[q.id] === false;
-      if (questionFilter === "incorrect") {
-        return isAnswered && userAnswers[q.id] !== q.correctAnswer;
-      }
-      return true;
-    })();
-    return matchesTopic && matchesFilterType;
-  });
+
 
   // Re-map the current slide index safely if filter changes or returns empty
   useEffect(() => {
@@ -548,10 +596,10 @@ export default function App() {
   };
 
   return (
-    <div id="babok-app-root" className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500/10 selection:text-indigo-950">
+    <div id="babok-app-root" className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500/10 selection:text-indigo-950 dark:selection:text-indigo-200 transition-colors duration-300">
       
       {/* Top Banner Navigation */}
-      <header id="babok-header" className="border-b border-slate-200 bg-white/90 backdrop-blur sticky top-0 z-40 px-4 py-3 sm:px-6 shadow-sm">
+      <header id="babok-header" className="border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 py-3 sm:px-6 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           
           <div className="flex items-center gap-3">
@@ -559,18 +607,18 @@ export default function App() {
               B
             </div>
             <div>
-              <h1 className="font-display font-semibold text-lg sm:text-xl tracking-tight text-slate-800 flex items-center gap-2">
+              <h1 className="font-display font-semibold text-lg sm:text-xl tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
                 BABOK® V3 Exam Studio
-                <span className="text-[10px] uppercase font-mono tracking-wider bg-indigo-50 text-indigo-600 px-2.5 py-0.5 rounded-full border border-indigo-100 font-semibold">
+                <span className="text-[10px] uppercase font-mono tracking-wider bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 px-2.5 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-900/50 font-semibold">
                   CBAP & CCBA
                 </span>
               </h1>
-              <p className="text-xs text-slate-500">Interactive CBAP & CCBA simulator built around the official guide</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Interactive CBAP & CCBA simulator built around the official guide</p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="bg-slate-100 p-0.5 rounded-xl border border-slate-200/60 flex">
+            <div className="bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200/60 dark:border-slate-705 flex">
               <button
                 id="btn-mode-practice"
                 onClick={() => {
@@ -581,7 +629,7 @@ export default function App() {
                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
                   sessionMode === "practice" 
                     ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-100" 
-                    : "text-slate-500 hover:text-slate-800"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
                 <Sliders className="h-3.5 w-3.5" />
@@ -597,7 +645,7 @@ export default function App() {
                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
                   sessionMode === "exam" 
                     ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-100" 
-                    : "text-slate-500 hover:text-slate-800"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
                 <Clock className="h-3.5 w-3.5" />
@@ -606,10 +654,19 @@ export default function App() {
             </div>
 
             <button
+              id="btn-theme-toggle"
+              onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
+              title={`Switch to ${theme === "light" ? "Dark" : "Light"} Mode`}
+              className="p-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-sm transition"
+            >
+              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </button>
+
+            <button
               id="btn-global-reset"
               onClick={handleResetApp}
               title="Reset progress to default bank"
-              className="p-2 rounded-xl bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 border border-slate-200 shadow-sm transition"
+              className="p-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-sm transition"
             >
               <RefreshCw className="h-4 w-4" />
             </button>
@@ -624,12 +681,12 @@ export default function App() {
         <section id="sidebar-left" className="lg:col-span-1 space-y-6">
           
           {/* Uploader Card */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm shadow-slate-100">
-            <h2 className="font-display font-semibold text-sm text-slate-800 mb-2 flex items-center gap-2">
-              <UploadCloud className="h-4 w-4 text-indigo-600" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm shadow-slate-100 dark:shadow-none transition-colors duration-300">
+            <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-100 mb-2 flex items-center gap-2">
+              <UploadCloud className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
               Ingest Document Set
             </h2>
-            <p className="text-xs text-slate-500 mb-4 font-normal">Upload custom exam papers (PDF or text lists) with up to 500 questions. Gemini parses and indexes them instantly.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-normal">Upload custom exam papers (PDF or text lists) with up to 500 questions. Gemini parses and indexes them instantly.</p>
 
             <div
               id="file-drop-area"
@@ -639,8 +696,8 @@ export default function App() {
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-xl p-6 text-center transition cursor-pointer relative ${
                 dragActive 
-                  ? "border-indigo-500 bg-indigo-50/50" 
-                  : "border-slate-200 hover:border-indigo-300 bg-slate-50 hover:bg-white"
+                  ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30" 
+                  : "border-slate-200 dark:border-slate-705 hover:border-indigo-300 dark:hover:border-indigo-500 bg-slate-50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800"
               }`}
             >
               <input
@@ -650,22 +707,22 @@ export default function App() {
                 onChange={handleFileInputChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <UploadCloud className="h-8 w-8 text-slate-400 mx-auto mb-2" />
-              <p className="text-xs font-semibold text-slate-700">Drop PDF or text practice paper here</p>
-              <p className="text-[10px] text-slate-400 mt-1">supports up to 40MB files</p>
+              <UploadCloud className="h-8 w-8 text-slate-400 dark:text-slate-500 mx-auto mb-2" />
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Drop PDF or text practice paper here</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">supports up to 40MB files</p>
             </div>
 
             {/* Ingestion Loading sequence */}
             {isUploading && (
-              <div className="mt-4 bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-indigo-600 border-t-transparent mx-auto mb-2"></div>
-                <p className="text-xs text-indigo-600 font-semibold">{uploadProgress}</p>
-                <span className="text-[10px] text-slate-400 font-mono">Gemini-3.5-Flash active</span>
+              <div className="mt-4 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-indigo-600 dark:border-indigo-450 border-t-transparent mx-auto mb-2"></div>
+                <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">{uploadProgress}</p>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Gemini-3.5-Flash active</span>
               </div>
             )}
 
             {uploadError && (
-              <div className="mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-850 text-xs rounded-xl flex items-start gap-2">
+              <div className="mt-4 p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-850 dark:text-rose-300 text-xs rounded-xl flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                 <p>{uploadError}</p>
               </div>
@@ -673,12 +730,12 @@ export default function App() {
           </div>
 
           {/* Configure Test Size & Simulator Card */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm shadow-slate-100 space-y-4">
-            <h2 className="font-display font-semibold text-sm text-slate-800 flex items-center gap-2">
-              <Sliders className="h-4 w-4 text-indigo-600" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/85 rounded-2xl p-5 shadow-sm shadow-slate-100 dark:shadow-none space-y-4 transition-colors duration-300">
+            <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <Sliders className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
               Configure Session Size
             </h2>
-            <p className="text-xs text-slate-500 font-normal">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
               Select or type the exact number of practice or exam questions to compile.
             </p>
 
@@ -698,7 +755,7 @@ export default function App() {
                   className={`py-1.5 px-0.5 rounded-lg text-xs font-semibold border transition-all ${
                     targetQuestionCount === preset
                       ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                      : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                      : "bg-slate-50 dark:bg-slate-800 text-slate-650 dark:text-slate-355 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                   }`}
                 >
                   {preset}
@@ -715,7 +772,7 @@ export default function App() {
                 placeholder="Custom (e.g. 240)"
                 value={customCountInput}
                 onChange={(e) => setCustomCountInput(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full"
+                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full"
               />
               <button
                 onClick={() => {
@@ -737,29 +794,29 @@ export default function App() {
             </div>
 
             {/* Explanation of the 40 limit requested by user */}
-            <div className="bg-indigo-50/40 border border-indigo-100/50 rounded-xl p-3 text-[11px] text-slate-600 leading-relaxed font-normal">
-              <span className="font-bold text-indigo-700 flex items-center gap-1 mb-1">
+            <div className="bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100/50 dark:border-indigo-900/30 rounded-xl p-3 text-[11px] text-slate-605 dark:text-slate-300 leading-relaxed font-normal">
+              <span className="font-bold text-indigo-705 dark:text-indigo-400 flex items-center gap-1 mb-1">
                 <HelpCircle className="h-3.5 w-3.5 shrink-0" />
                 Why does my 500-question PDF show 40?
               </span>
               To guarantee extreme accuracy without server timeout issues, Gemini indexes a high-fidelity 40-question slice at a time.
-              <span className="block mt-1 text-slate-705">
-                <strong className="text-indigo-800 font-semibold">To practice 100, 300, or 500 questions continuously</strong>, choose your target size above. The exam engine synthesizes continuous mock assessments automatically!
+              <span className="block mt-1 text-slate-705 dark:text-slate-400">
+                <strong className="text-indigo-800 dark:text-indigo-300 font-semibold">To practice 100, 300, or 500 questions continuously</strong>, choose your target size above. The exam engine synthesizes continuous mock assessments automatically!
               </span>
             </div>
           </div>
 
           {/* Exam Simulator controller, if mode is "exam" */}
           {sessionMode === "exam" && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm shadow-slate-100 space-y-4">
-              <h2 className="font-display font-semibold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
-                <Clock className="h-4 w-4 text-indigo-600" />
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm shadow-slate-100 dark:shadow-none space-y-4 transition-colors duration-300">
+              <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                <Clock className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 Exam Simulator Mode
               </h2>
 
               {!examStarted ? (
                 <div className="text-center py-4">
-                  <p className="text-xs text-slate-500 mb-4">Under simulator conditions: correct responses are isolated until submission. Total time is tracked.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Under simulator conditions: correct responses are isolated until submission. Total time is tracked.</p>
                   <button
                     id="btn-start-exam"
                     onClick={startExamSim}
@@ -771,18 +828,18 @@ export default function App() {
               ) : (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500 uppercase tracking-wider font-semibold font-mono">Timer</span>
-                    <span className="text-indigo-600 font-mono font-semibold text-sm bg-indigo-50/50 px-3 py-1 rounded-lg border border-indigo-100/50">
+                    <span className="text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold font-mono">Timer</span>
+                    <span className="text-indigo-600 dark:text-indigo-400 font-mono font-semibold text-sm bg-indigo-50/50 dark:bg-indigo-950/40 px-3 py-1 rounded-lg border border-indigo-100/50 dark:border-indigo-900/30">
                       {formatTime(elapsedTime)}
                     </span>
                   </div>
 
                   <div className="space-y-1.5">
-                    <div className="flex justify-between text-[11px] text-slate-500 font-mono">
+                    <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                       <span>Completion</span>
                       <span>{answeredCount}/{totalQuestionsCount} questions</span>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                    <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-205 dark:border-slate-700">
                       <div 
                         className="h-full bg-indigo-600 transition-all duration-300"
                         style={{ width: `${(answeredCount / totalQuestionsCount) * 100}%` }}
@@ -799,11 +856,11 @@ export default function App() {
                       Submit Exam Paper
                     </button>
                   ) : (
-                    <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100 text-center">
-                      <p className="text-xs text-emerald-800 font-semibold">Exam Finished & Graded</p>
+                    <div className="bg-emerald-55 dark:bg-emerald-950/20 p-3 rounded-xl border border-emerald-110 border-emerald-100 dark:border-emerald-900/30 text-center">
+                      <p className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold">Exam Finished & Graded</p>
                       <button
                         onClick={startExamSim}
-                        className="mt-2 text-xs text-indigo-600 hover:text-indigo-700 underline font-medium"
+                        className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline font-medium"
                       >
                         Retake Exam
                       </button>
@@ -815,15 +872,15 @@ export default function App() {
           )}
 
           {/* Quick Stats Dashboard */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm shadow-slate-100 space-y-4">
-            <h2 className="font-display font-semibold text-sm text-slate-800 mb-2 flex items-center justify-between">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm shadow-slate-100 dark:shadow-none space-y-4 transition-colors duration-300">
+            <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-100 mb-2 flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-indigo-600" />
+                <BarChart3 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 Performance Metrics
               </span>
               {sessionMode === "practice" && answeredCount > 0 && (
                 <span className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-semibold ${
-                  scorePercent >= 70 ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-rose-50 text-rose-700 border border-rose-200"
+                  scorePercent >= 70 ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-950" : "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-955"
                 }`}>
                   {scorePercent}% Avg
                 </span>
@@ -831,59 +888,59 @@ export default function App() {
             </h2>
 
             <div className="grid grid-cols-2 gap-2 text-center">
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-                <div className="text-xl font-display font-bold text-slate-800 mb-0.5">{totalQuestionsCount}</div>
-                <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold font-mono">Bank Pool</div>
+              <div className="bg-slate-50 dark:bg-slate-800/65 p-3 rounded-xl border border-slate-200/60 dark:border-slate-705">
+                <div className="text-xl font-display font-bold text-slate-800 dark:text-slate-100 mb-0.5">{totalQuestionsCount}</div>
+                <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold font-mono">Bank Pool</div>
               </div>
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-                <div className="text-xl font-display font-bold text-indigo-600 mb-0.5">{answeredCount}</div>
-                <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold font-mono">Answered</div>
+              <div className="bg-slate-50 dark:bg-slate-800/65 p-3 rounded-xl border border-slate-200/60 dark:border-slate-705">
+                <div className="text-xl font-display font-bold text-indigo-600 dark:text-indigo-450 mb-0.5">{answeredCount}</div>
+                <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold font-mono">Answered</div>
               </div>
             </div>
 
             {sessionMode === "practice" ? (
               <div className="space-y-2 text-xs">
-                <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500 flex items-center gap-1.5">
+                <div className="flex justify-between items-center py-1.5 border-b border-slate-100 dark:border-slate-800/60">
+                  <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
                     Correct
                   </span>
-                  <span className="font-semibold text-emerald-600 font-mono">{correctCount}</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-450 font-mono">{correctCount}</span>
                 </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500 flex items-center gap-1.5">
+                <div className="flex justify-between items-center py-1.5 border-b border-slate-100 dark:border-slate-800/60">
+                  <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-full bg-rose-500"></span>
                     Incorrect
                   </span>
-                  <span className="font-semibold text-rose-600 font-mono">{wrongCount}</span>
+                  <span className="font-semibold text-rose-600 dark:text-rose-455 font-mono">{wrongCount}</span>
                 </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500 flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-slate-300"></span>
+                <div className="flex justify-between items-center py-1.5 border-b border-slate-100 dark:border-slate-800/60">
+                  <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-600"></span>
                     Remaining Tasks
                   </span>
-                  <span className="font-semibold text-slate-600 font-mono">{unansweredCount}</span>
+                  <span className="font-semibold text-slate-650 dark:text-slate-300 font-mono">{unansweredCount}</span>
                 </div>
               </div>
             ) : examSubmitted ? (
-              <div className="space-y-4 bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
+              <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
-                  <Trophy className={`h-5 w-5 ${examScorePercent >= 70 ? "text-amber-500" : "text-slate-400"}`} />
-                  <span className="text-lg font-bold font-display text-slate-800">{examScorePercent}%</span>
+                  <Trophy className={`h-5 w-5 ${examScorePercent >= 70 ? "text-amber-500" : "text-slate-400 dark:text-slate-500"}`} />
+                  <span className="text-lg font-bold font-display text-slate-800 dark:text-slate-105">{examScorePercent}%</span>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {examScorePercent >= 70 
                     ? "Congratulations! You exceeded the standard 70% passing threshold for the CBAP exam." 
                     : "Score below 70%. Focus on development chapters below to strengthen competencies."}
                 </p>
-                <div className="text-xs text-slate-600 text-left pt-2 border-t border-slate-200 space-y-1">
-                  <div className="flex justify-between"><span>Correct:</span> <span className="font-semibold text-emerald-600">{correctCount}</span></div>
-                  <div className="flex justify-between"><span>Wrong:</span> <span className="font-semibold text-rose-600">{wrongCount}</span></div>
-                  <div className="flex justify-between"><span>Unanswered:</span> <span className="font-semibold text-slate-700">{unansweredCount}</span></div>
+                <div className="text-xs text-slate-600 dark:text-slate-300 text-left pt-2 border-t border-slate-200 dark:border-slate-705 space-y-1">
+                  <div className="flex justify-between"><span>Correct:</span> <span className="font-semibold text-emerald-600 dark:text-emerald-400">{correctCount}</span></div>
+                  <div className="flex justify-between"><span>Wrong:</span> <span className="font-semibold text-rose-600 dark:text-rose-400">{wrongCount}</span></div>
+                  <div className="flex justify-between"><span>Unanswered:</span> <span className="font-semibold text-slate-705 dark:text-slate-300">{unansweredCount}</span></div>
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-slate-400 text-center py-3 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
+              <p className="text-xs text-slate-400 dark:text-slate-400 text-center py-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-705 border-dashed">
                 Submit exam to unlock comprehensive simulator metrics.
               </p>
             )}
@@ -891,19 +948,19 @@ export default function App() {
 
           {/* Chapter-wise Breakdown */}
           {questions.length > 0 && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm shadow-slate-100 space-y-3">
-              <h2 className="font-display font-semibold text-xs text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm shadow-slate-100 dark:shadow-none space-y-3 transition-colors duration-300">
+              <h2 className="font-display font-semibold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                 <BookMarked className="h-3.5 w-3.5 text-indigo-600" />
                 Knowledge Area Breakdown
               </h2>
               <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
                 {Object.entries(performanceByTopic).map(([topic, stat]) => (
                   <div key={topic} className="space-y-1 text-xs">
-                    <div className="flex justify-between text-[11px] text-slate-500 font-mono">
-                      <span className="text-slate-700 font-semibold truncate max-w-[140px]" title={topic}>{topic}</span>
+                    <div className="flex justify-between text-[11px] text-slate-505 dark:text-slate-400 font-mono">
+                      <span className="text-slate-700 dark:text-slate-200 font-semibold truncate max-w-[140px]" title={topic}>{topic}</span>
                       <span className="font-semibold">{stat.correct}/{stat.total}</span>
                     </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                    <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700/60">
                       <div 
                         className={`h-full transition-all duration-300 ${stat.percentage >= 70 ? "bg-emerald-500" : "bg-amber-400"}`}
                         style={{ width: `${(stat.correct / stat.total) * 100}%` }}
@@ -921,7 +978,7 @@ export default function App() {
         <section id="main-test-stage" className="lg:col-span-3 space-y-6">
 
           {/* Question Filter Controller Bar */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-4 shadow-sm shadow-slate-100">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-4 shadow-sm shadow-slate-100 dark:shadow-none transition-colors duration-300">
             
             <div className="flex items-center gap-2.5 flex-wrap">
               <select
@@ -931,7 +988,7 @@ export default function App() {
                   setSelectedTopic(e.target.value);
                   setCurrentIndex(0);
                 }}
-                className="bg-slate-50 text-xs text-slate-800 rounded-xl px-3 py-1.5 border border-slate-200 focus:border-indigo-500 focus:outline-none transition max-w-[200px] font-semibold"
+                className="bg-slate-50 dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 rounded-xl px-3 py-1.5 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:outline-none transition max-w-[200px] font-semibold"
               >
                 <option value="All Topics">All Knowledge Areas</option>
                 {topics.map((t) => (
@@ -939,12 +996,12 @@ export default function App() {
                 ))}
               </select>
 
-              <div className="flex bg-slate-100/80 rounded-xl p-0.5 border border-slate-200">
+              <div className="flex bg-slate-100/80 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200 dark:border-slate-700">
                 <button
                   id="tab-filter-all"
                   onClick={() => { setQuestionFilter("all"); setCurrentIndex(0); }}
-                  className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition ${
-                    questionFilter === "all" ? "bg-white text-slate-900 shadow-sm border border-slate-200/40" : "text-slate-500 hover:text-slate-800"
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                    questionFilter === "all" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-105 shadow-sm border border-slate-200/40 dark:border-slate-600/40" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                   }`}
                 >
                   All ({filteredQuestions.length})
@@ -952,8 +1009,8 @@ export default function App() {
                 <button
                   id="tab-filter-unanswered"
                   onClick={() => { setQuestionFilter("unanswered"); setCurrentIndex(0); }}
-                  className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition ${
-                    questionFilter === "unanswered" ? "bg-white text-slate-900 shadow-sm border border-slate-200/40" : "text-slate-500 hover:text-slate-800"
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                    questionFilter === "unanswered" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-105 shadow-sm border border-slate-200/40 dark:border-slate-600/40" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                   }`}
                 >
                   Unanswered
@@ -961,8 +1018,8 @@ export default function App() {
                 <button
                   id="tab-filter-flagged"
                   onClick={() => { setQuestionFilter("flagged"); setCurrentIndex(0); }}
-                  className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition ${
-                    questionFilter === "flagged" ? "bg-white text-slate-900 shadow-sm border border-slate-200/40" : "text-slate-500 hover:text-slate-800"
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                    questionFilter === "flagged" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-105 shadow-sm border border-slate-200/40 dark:border-slate-600/40" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                   }`}
                 >
                   Flagged
@@ -971,8 +1028,8 @@ export default function App() {
                   <button
                     id="tab-filter-incorrect"
                     onClick={() => { setQuestionFilter("incorrect"); setCurrentIndex(0); }}
-                    className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition ${
-                      questionFilter === "incorrect" ? "bg-white text-slate-900 shadow-sm border border-slate-200/40" : "text-slate-500 hover:text-slate-800"
+                    className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                      questionFilter === "incorrect" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-105 shadow-sm border border-slate-200/40 dark:border-slate-600/40" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                     }`}
                   >
                     Weak Areas
@@ -984,8 +1041,8 @@ export default function App() {
             <button
               id="btn-toggle-grid"
               onClick={() => setShowQuestionsGrid(!showQuestionsGrid)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition shadow-sm ${
-                showQuestionsGrid ? "bg-slate-100 text-slate-900 border-slate-300" : ""
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-350 hover:text-slate-900 dark:hover:text-slate-100 transition shadow-sm ${
+                showQuestionsGrid ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600" : ""
               }`}
             >
               <Grid className="h-3.5 w-3.5" />
@@ -998,11 +1055,11 @@ export default function App() {
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm shadow-slate-100"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm shadow-slate-100 dark:shadow-none transition-colors duration-300"
             >
               <div className="flex justify-between items-center mb-3">
-                <span className="text-xs uppercase tracking-wider font-mono text-slate-500 font-semibold block">Select Slide To Jump</span>
-                <div className="flex items-center gap-3 text-[10px] uppercase font-mono text-slate-400 font-semibold">
+                <span className="text-xs uppercase tracking-wider font-mono text-slate-500 dark:text-slate-400 font-semibold block">Select Slide To Jump</span>
+                <div className="flex items-center gap-3 text-[10px] uppercase font-mono text-slate-400 dark:text-slate-500 font-semibold">
                   <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-white border border-slate-200"></span> Unvisited</span>
                   <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-emerald-100 border border-emerald-200"></span> Answered</span>
                   <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-amber-50 border border-amber-200"></span> Flagged</span>
@@ -1011,7 +1068,7 @@ export default function App() {
               <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 gap-1.5">
                 {filteredQuestions.map((q, idx) => {
                   const isAnswered = !!userAnswers[q.id];
-                  const isFlagged = !flaggedQuestions[q.id];
+                  const isFlagged = !!flaggedQuestions[q.id];
                   const isActive = idx === currentIndex;
                   
                   return (
@@ -1025,10 +1082,10 @@ export default function App() {
                         isActive
                           ? "bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-100 scale-105"
                           : isAnswered
-                            ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                            ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
                             : isFlagged
-                              ? "bg-amber-50 text-amber-600 border-amber-200"
-                              : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+                              ? "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800"
+                              : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
                       }`}
                     >
                       {q.number || idx + 1}
@@ -1046,23 +1103,23 @@ export default function App() {
               {/* Question area */}
               <div className="md:col-span-6 space-y-6">
                 
-                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm shadow-slate-100 relative overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-sm shadow-slate-100 dark:shadow-none relative overflow-hidden transition-colors duration-300">
                   
                   {/* Subtle design gradient elements */}
                   <div className="absolute top-0 right-0 h-40 w-40 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
                   {/* Header metadata */}
                   <div className="flex justify-between items-center mb-6">
-                    <span className="text-[11px] font-mono tracking-widest text-indigo-600 uppercase bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">
+                    <span className="text-[11px] font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900/50 px-3 py-1 rounded-full">
                       {activeQuestion.topic || "Core Questions"}
                     </span>
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => handleToggleFlag(activeQuestion.id)}
                         className={`p-2 rounded-xl border transition ${
-                          !flaggedQuestions[activeQuestion.id]
-                            ? "bg-amber-50 text-amber-600 border border-amber-200"
-                            : "bg-white border-slate-200 text-slate-400 hover:text-slate-700 hover:border-slate-300"
+                          flaggedQuestions[activeQuestion.id]
+                            ? "bg-amber-50 dark:bg-amber-950/45 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/65 animate-pulse"
+                            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-650"
                         }`}
                         title="Flag/Bookmark question for review"
                       >
@@ -1071,16 +1128,47 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Horizontal Scrollable Question Index Tracker */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto py-1.5 mb-6 border-b border-slate-100 dark:border-slate-800/70 scrollbar-none select-none">
+                    <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-slate-400 shrink-0 mr-1">Navigation:</span>
+                    {filteredQuestions.map((q, idx) => {
+                      const isAnswered = !!userAnswers[q.id];
+                      const isFlagged = !!flaggedQuestions[q.id];
+                      const isCurrent = idx === currentIndex;
+                      
+                      let circleStyle = "bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/60";
+                      
+                      if (isAnswered) {
+                        circleStyle = "bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/70";
+                      } else if (isFlagged) {
+                        circleStyle = "bg-amber-100/85 dark:bg-amber-950/60 text-amber-850 dark:text-amber-300 border-amber-200 dark:border-amber-800/70";
+                      }
+                      if (isCurrent) {
+                        circleStyle = "bg-indigo-600 text-white dark:bg-indigo-600 border-indigo-500 shadow-sm font-bold scale-105 ring-2 ring-indigo-500/20";
+                      }
+                      
+                      return (
+                        <button
+                          key={`horizontal-indicator-${q.id}`}
+                          onClick={() => setCurrentIndex(idx)}
+                          className={`w-7 h-7 rounded-lg text-[11px] font-mono font-semibold shrink-0 flex items-center justify-center border transition-all ${circleStyle}`}
+                          title={`Question ${idx + 1}: ${isAnswered ? "Answered" : "Unanswered"}${isFlagged ? " (Flagged)" : ""}`}
+                        >
+                          {idx + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   {/* Question Text */}
                   <div className="space-y-4">
-                    <div className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">
+                    <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-mono">
                       Question {currentIndex + 1} of {filteredQuestions.length}
                     </div>
-                    <p className="font-display font-semibold text-base sm:text-lg text-slate-800 leading-relaxed">
+                    <p className="font-display font-semibold text-base sm:text-lg text-slate-800 dark:text-slate-100 leading-relaxed">
                       {activeQuestion.text}
                     </p>
                   </div>
-
                   {/* Option List */}
                   <div className="mt-8 space-y-3">
                     {(['A', 'B', 'C', 'D'] as const).map((key) => {
@@ -1092,32 +1180,32 @@ export default function App() {
                       const isCorrect = key === activeQuestion.correctAnswer;
                       
                       // Highlight styles depending on selected & mode
-                      let btnStyle = "bg-slate-50/50 border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-indigo-400";
-                      let indicatorStyle = "bg-slate-200/60 text-slate-600";
+                      let btnStyle = "bg-slate-50/50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600";
+                      let indicatorStyle = "bg-slate-200/60 dark:bg-slate-700 text-slate-600 dark:text-slate-300";
                       
                       if (isSelected) {
-                        btnStyle = "bg-indigo-50 border-indigo-600 text-indigo-900";
+                        btnStyle = "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-650 dark:border-indigo-500 text-indigo-900 dark:text-indigo-200";
                         indicatorStyle = "bg-indigo-600 text-white font-bold";
                       }
 
                       if (showFeedback) {
                         if (isCorrect) {
-                          btnStyle = "bg-emerald-50 border border-emerald-500 text-emerald-900";
-                          indicatorStyle = "bg-emerald-600 text-white font-bold";
+                          btnStyle = "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-500 dark:border-emerald-600/70 text-emerald-900 dark:text-emerald-200";
+                          indicatorStyle = "bg-emerald-600 dark:bg-emerald-500 text-white font-bold";
                         } else if (isSelected) {
-                          btnStyle = "bg-rose-50 border border-rose-500 text-rose-900";
-                          indicatorStyle = "bg-rose-600 text-white font-bold";
+                          btnStyle = "bg-rose-50 dark:bg-rose-950/30 border border-rose-500 dark:border-rose-600/70 text-rose-900 dark:text-rose-200";
+                          indicatorStyle = "bg-rose-600 dark:bg-rose-500 text-white font-bold";
                         }
                       }
 
                       // Exam mode submitted feedback matches practice
                       if (sessionMode === "exam" && examSubmitted) {
                         if (isCorrect) {
-                          btnStyle = "bg-emerald-50 border border-emerald-500 text-emerald-900";
-                          indicatorStyle = "bg-emerald-600 text-white font-bold";
+                          btnStyle = "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-500 dark:border-emerald-600/70 text-emerald-900 dark:text-emerald-200";
+                          indicatorStyle = "bg-emerald-600 dark:bg-emerald-500 text-white font-bold";
                         } else if (isSelected) {
-                          btnStyle = "bg-rose-50 border border-rose-500 text-rose-900";
-                          indicatorStyle = "bg-rose-600 text-white font-bold";
+                          btnStyle = "bg-rose-50 dark:bg-rose-950/30 border border-rose-500 dark:border-rose-600/70 text-rose-900 dark:text-rose-200";
+                          indicatorStyle = "bg-rose-600 dark:bg-rose-500 text-white font-bold";
                         }
                       }
 
@@ -1136,13 +1224,13 @@ export default function App() {
                           {/* Checked Checkbox Icon overlays */}
                           <div className="absolute right-4 top-1/2 -translate-y-1/2">
                             {isSelected && !showFeedback && (
-                              <Check className="h-4 w-4 text-indigo-600" />
+                              <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                             )}
                             {showFeedback && isCorrect && (
-                              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-450" />
                             )}
                             {showFeedback && isSelected && !isCorrect && (
-                              <AlertCircle className="h-5 w-5 text-rose-650" />
+                              <AlertCircle className="h-5 w-5 text-rose-650 dark:text-rose-400" />
                             )}
                           </div>
                         </button>
@@ -1155,16 +1243,16 @@ export default function App() {
                     <motion.div 
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
-                      className="mt-6 pt-5 border-t border-slate-100 space-y-3"
+                      className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 space-y-3"
                     >
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                      <div className="flex items-center gap-2 text-xs font-bold text-slate-705 dark:text-slate-200">
                         {userAnswers[activeQuestion.id] === activeQuestion.correctAnswer ? (
-                          <span className="text-emerald-700 flex items-center gap-1.5">
+                          <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
                             <CheckCircle2 className="h-4 w-4" />
                             Correct answer Verified
                           </span>
                         ) : (
-                          <span className="text-rose-700 flex items-center gap-1.5">
+                          <span className="text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
                             <AlertCircle className="h-4 w-4" />
                             Incorrect. Correct choice is {activeQuestion.correctAnswer}
                           </span>
@@ -1172,13 +1260,13 @@ export default function App() {
                       </div>
 
                       {activeQuestion.explanation && (
-                        <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
                           {activeQuestion.explanation}
                         </p>
                       )}
 
                       {activeQuestion.babokSection && (
-                        <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
+                        <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1">
                           <BookOpen className="h-3 w-3" />
                           Official Reference: {activeQuestion.babokSection}
                         </div>
@@ -1187,25 +1275,25 @@ export default function App() {
                   )}
 
                   {/* Navigation Panel */}
-                  <div className="mt-8 pt-4 border-t border-slate-150 flex justify-between items-center text-xs">
+                  <div className="mt-8 pt-4 border-t border-slate-150 dark:border-slate-850 flex justify-between items-center text-xs">
                     <button
                       id="btn-navigate-prev"
                       onClick={() => setCurrentIndex((idx) => Math.max(0, idx - 1))}
                       disabled={currentIndex === 0}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-800 disabled:opacity-50 hover:bg-slate-50 hover:border-slate-300 transition"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-705 border-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition"
                     >
                       <ChevronLeft className="h-4 w-4" />
                       Previous Question
                     </button>
 
-                    <span className="text-slate-500 font-mono">
+                    <span className="text-slate-500 dark:text-slate-400 font-mono">
                       {currentIndex + 1} / {filteredQuestions.length}
                     </span>
                     <button
                       id="btn-navigate-next"
                       onClick={() => setCurrentIndex((idx) => Math.min(filteredQuestions.length - 1, idx + 1))}
                       disabled={currentIndex === filteredQuestions.length - 1}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 border border-indigo-500 text-white font-semibold disabled:opacity-50 hover:bg-indigo-700 transition"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 border border-indigo-500 text-white font-semibold disabled:opacity-40 hover:bg-indigo-750 transition"
                     >
                       Next Question
                       <ChevronRight className="h-4 w-4" />
@@ -1215,19 +1303,19 @@ export default function App() {
                 </div>
 
                 {/* Sub Validation Panel triggering Gemini verify on demand */}
-                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/70 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors duration-300">
                   <div className="flex gap-3 items-center">
-                    <div className="h-10 w-10 flex items-center justify-center shrink-0 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600">
+                    <div className="h-10 w-10 flex items-center justify-center shrink-0 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 text-indigo-600 dark:text-indigo-400">
                       <Sparkles className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-slate-800 tracking-wide flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 tracking-wide flex items-center gap-1.5">
                         BABOK V3 Deep AI verification
-                        <span className="text-[9px] bg-indigo-100/60 text-indigo-700 border border-indigo-200/45 px-1.5 py-0.2 rounded-full uppercase tracking-wider font-semibold">
+                        <span className="text-[9px] bg-indigo-100/60 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/45 dark:border-indigo-900/45 px-1.5 py-0.2 rounded-full uppercase tracking-wider font-semibold">
                           Real-time
                         </span>
                       </h4>
-                      <p className="text-[11px] text-slate-500">Query the high-precision validation compiler to index BABOK V3 citations, sections, and reasoning details.</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Query the high-precision validation compiler to index BABOK V3 citations, sections, and reasoning details.</p>
                     </div>
                   </div>
 
@@ -1235,7 +1323,7 @@ export default function App() {
                     id="btn-trigger-ai-verify"
                     onClick={handleVerifyAnswer}
                     disabled={isVerifying}
-                    className="flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs tracking-wider shadow-md shadow-indigo-100 transition w-full sm:w-auto"
+                    className="flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs tracking-wider shadow-md shadow-indigo-100 dark:shadow-none transition w-full sm:w-auto"
                   >
                     {isVerifying ? (
                       <>
@@ -1257,65 +1345,65 @@ export default function App() {
               <div className="md:col-span-4 space-y-6">
                 
                 {/* Active sidebar verified loader card */}
-                <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm shadow-slate-100 relative min-h-[300px] flex flex-col justify-between">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm shadow-slate-100 dark:shadow-none relative min-h-[300px] flex flex-col justify-between transition-colors duration-300">
                   <div>
-                    <h3 className="font-display font-semibold text-sm text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
-                      <BookOpen className="h-4 w-4 text-indigo-600" />
+                    <h3 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-150 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800/80 flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                       BABOK Section Citation
                     </h3>
 
                     {isVerifying ? (
                       <div className="space-y-4 py-8 text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-650 border-indigo-650 border-indigo-650/15 border-t-indigo-650 mx-auto"></div>
-                        <p className="text-xs text-indigo-600 font-semibold tracking-wide">Consulting BABOK V3 official guides...</p>
+                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-650 dark:border-indigo-400 border-t-transparent mx-auto"></div>
+                        <p className="text-xs text-indigo-600 dark:text-indigo-405 font-semibold tracking-wide">Consulting BABOK V3 official guides...</p>
                         <div className="space-y-1.5 px-4">
-                          <div className="h-2 bg-slate-100 rounded animate-pulse"></div>
-                          <div className="h-2 bg-slate-100 rounded animate-pulse w-5/6 mx-auto"></div>
-                          <div className="h-2 bg-slate-100 rounded animate-pulse w-2/3 mx-auto"></div>
+                          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded animate-pulse"></div>
+                          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-5/6 mx-auto"></div>
+                          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-2/3 mx-auto"></div>
                         </div>
                       </div>
                     ) : verificationResult ? (
                       <motion.div 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="space-y-4 text-xs text-slate-600"
+                        className="space-y-4 text-xs text-slate-600 dark:text-slate-300"
                       >
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                          <div className="flex justify-between text-[10px] text-slate-400 uppercase tracking-widest font-mono">
+                        <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                          <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-mono">
                             <span>Topic / Knowledge Area</span>
-                            <span className="text-emerald-600 font-bold">{verificationResult.confidenceScore}% Match</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{verificationResult.confidenceScore}% Match</span>
                           </div>
-                          <div className="text-slate-800 font-semibold text-xs tracking-wide">
+                          <div className="text-slate-800 dark:text-slate-100 font-semibold text-xs tracking-wide">
                             {verificationResult.knowledgeArea}
                           </div>
-                          <div className="text-[10px] text-indigo-600 font-mono uppercase bg-indigo-55 px-2 py-0.5 rounded border border-indigo-100 inline-block font-semibold">
+                          <div className="text-[10px] text-indigo-605 dark:text-indigo-400 font-mono uppercase bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-100 dark:border-indigo-900/55 inline-block font-semibold">
                             {verificationResult.babokSection}
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-bold animate-fade-in">Analysis & Proof:</div>
-                          <div className="text-slate-600 leading-relaxed font-sans prose max-h-72 overflow-y-auto pr-1">
+                          <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400 dark:text-slate-550 font-bold">Analysis & Proof:</div>
+                          <div className="text-slate-600 dark:text-slate-300 leading-relaxed font-sans prose dark:prose-invert max-h-72 overflow-y-auto pr-1">
                             {verificationResult.explanation}
                           </div>
                         </div>
 
                       </motion.div>
                     ) : verificationError ? (
-                      <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs">
+                      <div className="p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 rounded-2xl text-rose-800 dark:text-rose-300 text-xs">
                         <p className="font-semibold mb-1">Guide Connection Refused</p>
                         <p>{verificationError}</p>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center justify-center text-center py-16 px-4 animate-fade-in">
-                        <HelpCircle className="h-10 w-10 text-slate-300 mb-3" />
-                        <p className="text-xs text-slate-700 font-semibold mb-1">Citations Pending</p>
-                        <p className="text-[11px] text-slate-400">Pick an option and click <strong className="text-slate-600 font-semibold">Verify answer with BABOK Guide</strong> to execute deep validation checks on this question.</p>
+                      <div className="flex flex-col items-center justify-center text-center py-16 px-4">
+                        <HelpCircle className="h-10 w-10 text-slate-350 dark:text-slate-600 mb-3" />
+                        <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold mb-1">Citations Pending</p>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500">Pick an option and click <strong className="text-slate-600 dark:text-slate-300 font-semibold">Verify answer with BABOK Guide</strong> to execute deep validation checks on this question.</p>
                       </div>
                     )}
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono text-slate-400 font-bold">
+                  <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500 font-bold">
                     <span>Validation engine 3.5</span>
                     <span className="flex items-center gap-1">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Active
@@ -1327,10 +1415,10 @@ export default function App() {
 
             </div>
           ) : (
-            <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center max-w-lg mx-auto shadow-sm shadow-slate-100">
-              <BookOpen className="h-12 w-12 text-slate-350 mx-auto mb-4" />
-              <h3 className="font-display font-semibold text-lg text-slate-800 mb-2">No Matches Identified</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center max-w-lg mx-auto shadow-sm shadow-slate-100 dark:shadow-none transition-colors duration-300">
+              <BookOpen className="h-12 w-12 text-slate-350 dark:text-slate-600 mx-auto mb-4" />
+              <h3 className="font-display font-semibold text-lg text-slate-800 dark:text-slate-105 mb-2">No Matches Identified</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 No active questions match your filter choices ({questionFilter}). Change active filter categories above or reload defaults.
               </p>
               <button
