@@ -104,6 +104,11 @@ export default function App() {
   const [questionFilter, setQuestionFilter] = useState<"all" | "unanswered" | "flagged" | "incorrect">("all");
   const [showQuestionsGrid, setShowQuestionsGrid] = useState<boolean>(false);
 
+  // Bulk pre-fetching states
+  const [isBulkFetching, setIsBulkFetching] = useState<boolean>(false);
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number; successCount: number } | null>(null);
+  const bulkCancelRef = useRef<boolean>(false);
+
   // Drag and drop state
   const [dragActive, setDragDropActive] = useState<boolean>(false);
   const [customCountInput, setCustomCountInput] = useState<string>("");
@@ -458,12 +463,150 @@ export default function App() {
 
       const data = await response.json();
       setVerificationResult(data);
+
+      const originalId = activeQuestion.id.split("-index-")[0];
+
+      // Backfill the master list / localStorage cache
+      setQuestions((prevQuestions) => 
+        prevQuestions.map((q) => 
+          q.id === originalId 
+            ? { 
+                ...q, 
+                explanation: data.explanation, 
+                babokSection: data.babokSection,
+                topic: data.knowledgeArea || q.topic,
+                correctAnswer: data.correctAnswer || q.correctAnswer
+              } 
+            : q
+        )
+      );
+
+      // Backfill current active state list
+      setActiveSessionQuestions((prevActive) => 
+        prevActive.map((q) => 
+          q.id === activeQuestion.id 
+            ? { 
+                ...q, 
+                explanation: data.explanation, 
+                babokSection: data.babokSection,
+                topic: data.knowledgeArea || q.topic,
+                correctAnswer: data.correctAnswer || q.correctAnswer
+              } 
+            : q
+        )
+      );
+
     } catch (e: any) {
       console.error(e);
       setVerificationError(e.message || "An error occurred during verification.");
     } finally {
       setIsVerifying(false);
     }
+  };
+
+  const startBulkPrefetch = async (targetQuestionsToFetch: Question[]) => {
+    if (isBulkFetching) return;
+    setIsBulkFetching(true);
+    bulkCancelRef.current = false;
+    
+    // Track count that needs real explanations from BABOK
+    const pending = targetQuestionsToFetch.filter(q => {
+      const origId = q.id.split("-index-")[0];
+      const masterQ = questions.find(mq => mq.id === origId) || q;
+      return !masterQ.explanation || 
+             masterQ.explanation === "No explanation provided." || 
+             masterQ.explanation.trim() === "" ||
+             masterQ.explanation.includes("No explanation provided");
+    });
+
+    if (pending.length === 0) {
+      alert("All loaded questions already have verified BABOK guide explanations!");
+      setIsBulkFetching(false);
+      return;
+    }
+
+    setBulkProgress({ current: 0, total: pending.length, successCount: 0 });
+
+    const chunkSize = 2; // Keep chunk gentle & parallel
+    let currentIdx = 0;
+    let actualSuccesses = 0;
+
+    while (currentIdx < pending.length && !bulkCancelRef.current) {
+      const chunk = pending.slice(currentIdx, currentIdx + chunkSize);
+      
+      const promises = chunk.map(async (q) => {
+        try {
+          const response = await fetch("/api/verify-answer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: q.text,
+              options: q.options,
+              correctAnswer: q.correctAnswer,
+              userSelected: null
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const originalId = q.id.split("-index-")[0];
+
+            // update master
+            setQuestions((prevQuestions) => 
+              prevQuestions.map((originQ) => 
+                originQ.id === originalId 
+                  ? { 
+                      ...originQ, 
+                      explanation: data.explanation, 
+                      babokSection: data.babokSection,
+                      topic: data.knowledgeArea || originQ.topic,
+                      correctAnswer: data.correctAnswer || originQ.correctAnswer
+                    } 
+                  : originQ
+              )
+            );
+            
+            // update active
+            setActiveSessionQuestions((prevActive) => 
+              prevActive.map((originQ) => 
+                originQ.id === q.id 
+                  ? { 
+                      ...originQ, 
+                      explanation: data.explanation, 
+                      babokSection: data.babokSection,
+                      topic: data.knowledgeArea || originQ.topic,
+                      correctAnswer: data.correctAnswer || originQ.correctAnswer
+                    } 
+                  : originQ
+              )
+            );
+            actualSuccesses++;
+          }
+        } catch (e) {
+          console.error("Failed to pre-fetch explanation: " + q.id, e);
+        }
+      });
+
+      await Promise.all(promises);
+      if (bulkCancelRef.current) break;
+
+      currentIdx += chunkSize;
+      const progressCount = Math.min(pending.length, currentIdx);
+      const succCount = Math.min(pending.length, actualSuccesses);
+      setBulkProgress((prev) => prev ? { ...prev, current: progressCount, successCount: succCount } : null);
+      
+      // Delay before next chunk to respect Gemini API rate limit properly
+      await new Promise(resolve => setTimeout(resolve, 800));
+    }
+
+    setIsBulkFetching(false);
+    setBulkProgress(null);
+  };
+
+  const stopBulkPrefetch = () => {
+    bulkCancelRef.current = true;
+    setIsBulkFetching(false);
+    setBulkProgress(null);
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -1051,6 +1194,85 @@ export default function App() {
                 <strong className="text-indigo-800 dark:text-indigo-300 font-semibold">To practice 100, 300, or 500 questions continuously</strong>, choose your target size above. The exam engine synthesizes continuous mock assessments automatically!
               </span>
             </div>
+          </div>
+
+          {/* BABOK Pre-Fetcher & Backfiller Card */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm shadow-slate-100 dark:shadow-none space-y-4 transition-colors duration-300">
+            <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-emerald-500" />
+              BABOK Explanation Fetcher
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+              Injected questions from PDF/JSON rarely have full answer explanations. Run this Fetcher to bulk-index detailed BABOK V3 guides for offline studies.
+            </p>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500 dark:text-slate-400">Total Loaded pool:</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300 font-mono">{questions.length}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500 dark:text-slate-400">With BABOK Guides:</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400 font-mono">
+                  {questions.filter(q => q.explanation && q.explanation !== "No explanation provided." && !q.explanation.includes("No explanation provided")).length}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500 dark:text-slate-400">Explanations Pending:</span>
+                <span className="font-semibold text-amber-500 font-mono">
+                  {questions.filter(q => !q.explanation || q.explanation === "No explanation provided." || q.explanation.includes("No explanation provided")).length}
+                </span>
+              </div>
+            </div>
+
+            {isBulkFetching && bulkProgress ? (
+              <div className="bg-slate-50 dark:bg-slate-800/80 p-3.5 rounded-xl border border-indigo-100 dark:border-indigo-900/40 text-center space-y-2">
+                <div className="flex justify-between text-[10px] uppercase font-bold tracking-wider text-indigo-650 dark:text-indigo-400 font-mono">
+                  <span>Enriching Database</span>
+                  <span>{bulkProgress.current} / {bulkProgress.total}</span>
+                </div>
+                
+                <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden text-center">
+                  <div 
+                    className="h-full bg-indigo-600 transition-all duration-300"
+                    style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+                  ></div>
+                </div>
+                
+                <p className="text-[11px] text-slate-550 dark:text-slate-400 leading-snug">
+                  Added <strong className="text-emerald-600 dark:text-emerald-400">{bulkProgress.successCount}</strong> detailed BABOK guide explanations during this pass.
+                </p>
+
+                <button 
+                  onClick={stopBulkPrefetch}
+                  className="w-full text-center text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold flex items-center justify-center gap-1 mt-1.5"
+                >
+                  <X className="h-3 w-3" /> Stop Progress
+                </button>
+              </div>
+            ) : (
+              <div className="pt-2 grid grid-cols-1 gap-2">
+                <button
+                  id="btn-enrich-active"
+                  onClick={() => startBulkPrefetch(activeSessionQuestions)}
+                  disabled={isBulkFetching}
+                  className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Pre-Fetch Current Session ({activeSessionQuestions.length})
+                </button>
+
+                <button
+                  id="btn-enrich-all"
+                  onClick={() => startBulkPrefetch(questions)}
+                  disabled={isBulkFetching}
+                  className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
+                >
+                  <BookOpen className="h-3.5 w-3.5" />
+                  Fetch & Verify All Pool ({questions.length})
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Exam Simulator controller, if mode is "exam" */}
