@@ -497,6 +497,119 @@ export default function App() {
     setUploadError(null);
     setUploadProgress("Analyzing document pages...");
 
+    // Helper function to process parsed JSON lists/objects and transition state
+    const parseAndLoadJSON = (text: string) => {
+      const parsed = JSON.parse(text);
+      let qList: any[] = [];
+      if (Array.isArray(parsed)) {
+        qList = parsed;
+      } else if (parsed && Array.isArray(parsed.questions)) {
+        qList = parsed.questions;
+      } else if (parsed && typeof parsed === "object") {
+        const firstArrayKey = Object.keys(parsed).find(key => Array.isArray(parsed[key]));
+        if (firstArrayKey) {
+          qList = parsed[firstArrayKey];
+        }
+      }
+
+      if (qList.length > 0) {
+        const newQuestions: Question[] = qList.map((q: any, index: number) => {
+          const options = q.options || {
+            A: q.A || (Array.isArray(q.optionsList) && q.optionsList[0]) || "",
+            B: q.B || (Array.isArray(q.optionsList) && q.optionsList[1]) || "",
+            C: q.C || (Array.isArray(q.optionsList) && q.optionsList[2]) || "",
+            D: q.D || (Array.isArray(q.optionsList) && q.optionsList[3]) || ""
+          };
+          
+          const finalOptions = {
+            A: String(options.A || q.choiceA || q.optionA || "Option A"),
+            B: String(options.B || q.choiceB || q.optionB || "Option B"),
+            C: String(options.C || q.choiceC || q.optionC || "Option C"),
+            D: String(options.D || q.choiceD || q.optionD || "Option D"),
+          };
+
+          let rawAnswer = String(q.correctAnswer || q.answer || q.correct_answer || "A").trim().toUpperCase();
+          if (rawAnswer.startsWith("OPTION ")) {
+            rawAnswer = rawAnswer.replace("OPTION ", "").trim();
+          }
+          const validAnswers: ("A" | "B" | "C" | "D")[] = ["A", "B", "C", "D"];
+          const cleanAnswer: "A" | "B" | "C" | "D" = validAnswers.includes(rawAnswer as any) ? (rawAnswer as any) : "A";
+
+          return {
+            id: `uploaded-json-${Date.now()}-${index}`,
+            number: Number(q.number || index + 1),
+            topic: q.topic || "Uploaded JSON Questions",
+            text: q.text || q.question || "Undefined Question Text",
+            options: finalOptions,
+            correctAnswer: cleanAnswer,
+            explanation: q.explanation || q.rationale || "No explanation provided.",
+            babokSection: q.babokSection || q.section || ""
+          };
+        });
+
+        setQuestions(newQuestions);
+        setTargetQuestionCount(newQuestions.length);
+        setUserAnswers({});
+        setCurrentIndex(0);
+        setExamSubmitted(false);
+        setExamStarted(false);
+        setElapsedTime(0);
+        setUploadProgress("Success! Loaded " + newQuestions.length + " questions.");
+        return true;
+      }
+      return false;
+    };
+
+    const isJsonFile = file.name.endsWith(".json") || file.type === "application/json";
+    
+    if (isJsonFile) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const text = event.target?.result as string;
+          const success = parseAndLoadJSON(text);
+          if (!success) {
+            throw new Error("No structured questions identified in the uploaded JSON file. Verify that the file represents a JSON list or contains an outer 'questions' list key.");
+          }
+        } catch (err: any) {
+          console.error(err);
+          setUploadError("JSON Parse Error: " + (err.message || "Failed to parse structured JSON. Ensure valid format."));
+        } finally {
+          setIsUploading(false);
+        }
+      };
+      reader.onerror = () => {
+        setUploadError("Could not read local JSON file.");
+        setIsUploading(false);
+      };
+      reader.readAsText(file);
+      return;
+    }
+
+    // Attempt client-side JSON extraction for potential structured offline text files first
+    if (file.name.endsWith(".txt")) {
+      try {
+        const textContent = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string || "");
+          reader.onerror = (e) => reject(e);
+          reader.readAsText(file);
+        });
+
+        const trimmed = textContent.trim();
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+          const success = parseAndLoadJSON(trimmed);
+          if (success) {
+            setIsUploading(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Client-side offline parsing failed, proceeding to cloud document compiler.", err);
+      }
+    }
+
+    // Default: Cloud Document Compiler utilizing Gemini
     const progressPhases = [
       "Securing connection metadata...",
       "Converting exam papers to binary payload...",
@@ -689,37 +802,39 @@ export default function App() {
         {/* Left Side: Stats and Uploader */}
         <section id="sidebar-left" className="lg:col-span-1 space-y-6">
           
-          {/* Uploader Card */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm shadow-slate-100 dark:shadow-none transition-colors duration-300">
-            <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-100 mb-2 flex items-center gap-2">
-              <UploadCloud className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-              Ingest Document Set
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-normal">Upload custom exam papers (PDF or text lists) with up to 500 questions. Gemini parses and indexes them instantly.</p>
-
-            <div
-              id="file-drop-area"
-              onDragEnter={handleDrag}
-              onDragOver={handleDrag}
-              onDragLeave={handleDrag}
-              onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-6 text-center transition cursor-pointer relative ${
-                dragActive 
-                  ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30" 
-                  : "border-slate-200 dark:border-slate-705 hover:border-indigo-300 dark:hover:border-indigo-500 bg-slate-50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800"
-              }`}
-            >
-              <input
-                id="doc-file-input"
-                type="file"
-                accept=".pdf,.txt"
-                onChange={handleFileInputChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-              />
-              <UploadCloud className="h-8 w-8 text-slate-400 dark:text-slate-500 mx-auto mb-2" />
-              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Drop PDF or text practice paper here</p>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">supports up to 40MB files</p>
-            </div>
+           {/* Ingest Document Set */}
+           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm shadow-slate-100 dark:shadow-none transition-colors duration-300">
+             <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-100 mb-2 flex items-center gap-2">
+               <UploadCloud className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+               Ingest Document Set
+             </h2>
+             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-normal">
+               Upload mock exam papers in **PDF**, **TXT** list, or **JSON** formats. JSON files are parsed instantly on the client, enabling full offline study support.
+             </p>
+ 
+             <div
+               id="file-drop-area"
+               onDragEnter={handleDrag}
+               onDragOver={handleDrag}
+               onDragLeave={handleDrag}
+               onDrop={handleDrop}
+               className={`border-2 border-dashed rounded-xl p-6 text-center transition cursor-pointer relative ${
+                 dragActive 
+                   ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30" 
+                   : "border-slate-200 dark:border-slate-705 hover:border-indigo-300 dark:hover:border-indigo-500 bg-slate-50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800"
+               }`}
+             >
+               <input
+                 id="doc-file-input"
+                 type="file"
+                 accept=".pdf,.txt,.json"
+                 onChange={handleFileInputChange}
+                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+               />
+               <UploadCloud className="h-8 w-8 text-slate-400 dark:text-slate-500 mx-auto mb-2" />
+               <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Drop PDF, TXT, or JSON paper here</p>
+               <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">supports JSON offline or cloud PDF parsing</p>
+             </div>
 
             {/* Ingestion Loading sequence */}
             {isUploading && (

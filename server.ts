@@ -40,10 +40,34 @@ function getGeminiClient(): GoogleGenAI {
   return aiClient;
 }
 
-// Robust helper to parse JSON outputs in case any markdown delimiters are returned
+// Robust helper to parse JSON outputs in case any markdown delimiters or prepended texts are returned
 function cleanAndParseJSON(text: string | undefined): any {
   if (!text) return {};
   let cleaned = text.trim();
+  
+  // Find first '{' or '[' and last '}' or ']' to isolate JSON boundaries
+  const firstBrace = cleaned.indexOf("{");
+  const firstBracket = cleaned.indexOf("[");
+  let startIdx = -1;
+  let endIdx = -1;
+  
+  if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+    startIdx = firstBrace;
+    endIdx = cleaned.lastIndexOf("}");
+  } else if (firstBracket !== -1) {
+    startIdx = firstBracket;
+    endIdx = cleaned.lastIndexOf("]");
+  }
+  
+  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+    try {
+      const candidate = cleaned.substring(startIdx, endIdx + 1);
+      return JSON.parse(candidate);
+    } catch (e: any) {
+      console.warn("Regex-based extraction failed, fallback to standard parsing logic: ", e.message);
+    }
+  }
+
   if (cleaned.startsWith("```")) {
     cleaned = cleaned.replace(/^```[a-zA-Z]*\n/, ""); // strip opening codeblocks
     cleaned = cleaned.replace(/\n```$/, "");         // strip closing codeblocks
@@ -120,7 +144,15 @@ app.post("/api/parse-document", upload.single("questionFile"), async (req, res) 
       return res.status(400).json({ error: "No file uploaded. Please upload a PDF or text file." });
     }
 
-    const mimeType = req.file.mimetype;
+    // Determine the most accurate mimeType based on originalName extension as fallback
+    let mimeType = req.file.mimetype;
+    const originalName = req.file.originalname || "";
+    if (originalName.toLowerCase().endsWith(".pdf")) {
+      mimeType = "application/pdf";
+    } else if (originalName.toLowerCase().endsWith(".txt")) {
+      mimeType = "text/plain";
+    }
+
     const base64Data = req.file.buffer.toString("base64");
 
     const prompt = `
