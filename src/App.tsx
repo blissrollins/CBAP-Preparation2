@@ -25,9 +25,56 @@ import { motion, AnimatePresence } from "motion/react";
 import { Question, ExamSession, VerificationResult } from "./types";
 import { defaultQuestions } from "./data/defaultQuestions";
 
+interface AnswerAttempt {
+  questionText: string;
+  topic: string;
+  isCorrect: boolean;
+  timestamp: number;
+  mode: "practice" | "exam";
+}
+
+const babokTopicRecommendations: Record<string, { read: string; focus: string }> = {
+  "Solution Evaluation": {
+    read: "BABOK V3 Chapter 8: Solution Evaluation",
+    focus: "Prioritize Solution Performance Assessment (Section 8.4) and Analyze Value Suggestion (Section 8.5)."
+  },
+  "Strategy Analysis": {
+    read: "BABOK V3 Chapter 6: Strategy Analysis",
+    focus: "Strengthen focus on Defining Future State Capabilities (Section 6.2) and Assessing Risks (Section 6.3)."
+  },
+  "Requirements Life Cycle Management": {
+    read: "BABOK V3 Chapter 5: Requirements Life Cycle Management",
+    focus: "Review Requirements Prioritization criteria (Section 5.3) and Integrity Traceability Matrices (Section 5.1)."
+  },
+  "Requirements Analysis and Design Definition": {
+    read: "BABOK V3 Chapter 7: Requirements Analysis and Design Definition",
+    focus: "Focus on Specifying and Modeling Requirements (Section 7.1) and Defining Solution/Design Options (Section 7.4)."
+  },
+  "Business Analysis Planning and Monitoring": {
+    read: "BABOK V3 Chapter 3: Business Analysis Planning and Monitoring",
+    focus: "Review Planning BA Governance (Section 3.3) and BA Information Management approaches (Section 3.4)."
+  },
+  "Elicitation and Collaboration": {
+    read: "BABOK V3 Chapter 4: Elicitation and Collaboration",
+    focus: "Understand Elicitation Results Refinement (Section 4.3) and Stakeholder Collaboration tactics (Section 4.4)."
+  },
+  "Uploaded Exam Questions": {
+    read: "Review your custom uploaded syllabus",
+    focus: "Cross-reference missed indices against BABOK V3 Chapter 10 core Business Analysis techniques."
+  },
+  "All Topics": {
+    read: "Complete BABOK Guide V3",
+    focus: "Broad spectrum review across all 6 core Knowledge Areas."
+  }
+};
+
 export default function App() {
   // --- States ---
   const [questions, setQuestions] = useState<Question[]>(defaultQuestions);
+  const [targetQuestionCount, setTargetQuestionCount] = useState<number>(15);
+  const [activeSessionQuestions, setActiveSessionQuestions] = useState<Question[]>([]);
+  const [cumulativeHistory, setCumulativeHistory] = useState<AnswerAttempt[]>([]);
+  
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [sessionMode, setSessionMode] = useState<"practice" | "exam">("practice");
   const [userAnswers, setUserAnswers] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
@@ -57,6 +104,7 @@ export default function App() {
 
   // Drag and drop state
   const [dragActive, setDragDropActive] = useState<boolean>(false);
+  const [customCountInput, setCustomCountInput] = useState<string>("");
 
   // --- Initialize or Load Cached state ---
   useEffect(() => {
@@ -64,14 +112,33 @@ export default function App() {
     const cachedAnswers = localStorage.getItem("babok_user_answers");
     const cachedFlags = localStorage.getItem("babok_flagged");
     const cachedMode = localStorage.getItem("babok_session_mode");
+    const cachedTargetCount = localStorage.getItem("babok_target_count");
+    const cachedHistory = localStorage.getItem("babok_cumulative_history");
 
+    let loadedQuestions = defaultQuestions;
     if (cachedQuestions) {
       try {
-        setQuestions(JSON.parse(cachedQuestions));
+        loadedQuestions = JSON.parse(cachedQuestions);
+        setQuestions(loadedQuestions);
       } catch (e) {
         console.error("Failed to parse cached questions", e);
       }
     }
+
+    if (cachedTargetCount) {
+      setTargetQuestionCount(parseInt(cachedTargetCount, 10));
+    } else {
+      setTargetQuestionCount(loadedQuestions.length);
+    }
+
+    if (cachedHistory) {
+      try {
+        setCumulativeHistory(JSON.parse(cachedHistory));
+      } catch (e) {
+        console.error("Failed to parse cumulative history", e);
+      }
+    }
+
     if (cachedAnswers) {
       try {
         setUserAnswers(JSON.parse(cachedAnswers));
@@ -97,6 +164,10 @@ export default function App() {
   }, [questions]);
 
   useEffect(() => {
+    localStorage.setItem("babok_target_count", targetQuestionCount.toString());
+  }, [targetQuestionCount]);
+
+  useEffect(() => {
     localStorage.setItem("babok_user_answers", JSON.stringify(userAnswers));
   }, [userAnswers]);
 
@@ -107,6 +178,27 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("babok_session_mode", sessionMode);
   }, [sessionMode]);
+
+  // Synchronize activeSessionQuestions based on target size and master question pool
+  useEffect(() => {
+    if (!questions || questions.length === 0) return;
+    
+    // Synthesize exam/practice question slots of exact target size
+    const list: Question[] = [];
+    for (let i = 0; i < targetQuestionCount; i++) {
+      const baseQ = questions[i % questions.length];
+      const isRepeated = i >= questions.length;
+      list.push({
+        ...baseQ,
+        id: `${baseQ.id}-index-${i}`,
+        number: i + 1,
+        text: isRepeated 
+          ? `${baseQ.text} (Review Set ${Math.floor(i / questions.length) + 1})`
+          : baseQ.text
+      });
+    }
+    setActiveSessionQuestions(list);
+  }, [questions, targetQuestionCount]);
 
   // Exam timer control
   useEffect(() => {
@@ -135,16 +227,15 @@ export default function App() {
   }, [currentIndex]);
 
   // --- Calculated Helpers ---
-  const activeQuestion: Question | undefined = questions[currentIndex];
+  const activeQuestion: Question | undefined = activeSessionQuestions[currentIndex];
   
-  // Filter questions based on topic and unanswered/flagged statuses
-  const filteredQuestions = questions.filter((q) => {
+  // Filter active session questions based on topic and unanswered/flagged statuses
+  const filteredQuestions = activeSessionQuestions.filter((q) => {
     const matchesTopic = selectedTopic === "All Topics" || q.topic === selectedTopic;
     const isAnswered = !!userAnswers[q.id];
-    const isFlagged = !flaggedQuestions[q.id]; // flag registers as inverted or direct
     const matchesFilterType = (() => {
       if (questionFilter === "unanswered") return !isAnswered;
-      if (questionFilter === "flagged") return !flaggedQuestions[q.id] === false; // flagged is truthy
+      if (questionFilter === "flagged") return !flaggedQuestions[q.id] === false;
       if (questionFilter === "incorrect") {
         return isAnswered && userAnswers[q.id] !== q.correctAnswer;
       }
@@ -162,26 +253,26 @@ export default function App() {
     }
   }, [selectedTopic, questionFilter, filteredQuestions.length]);
 
-  // Build a distinct set of topics/chapters detected in active questions
+  // Build a distinct set of topics/chapters detected in Master questions
   const topics: string[] = Array.from(new Set(questions.map((q) => q.topic || "Solution Evaluation")));
 
   // Calculate scores and performance
-  const totalQuestionsCount = questions.length;
+  const totalQuestionsCount = activeSessionQuestions.length;
   const answeredCount = Object.keys(userAnswers).length;
-  const unansweredCount = totalQuestionsCount - answeredCount;
+  const unansweredCount = Math.max(0, totalQuestionsCount - answeredCount);
 
-  const correctAnswersList = questions.map((q) => {
+  const correctAnswersList = activeSessionQuestions.map((q) => {
     const isAnswered = !!userAnswers[q.id];
     return isAnswered && userAnswers[q.id] === q.correctAnswer;
   });
   const correctCount = correctAnswersList.filter(Boolean).length;
-  const wrongCount = answeredCount - correctCount;
+  const wrongCount = Math.max(0, answeredCount - correctCount);
   const scorePercent = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
   const examScorePercent = totalQuestionsCount > 0 ? Math.round((correctCount / totalQuestionsCount) * 100) : 0;
 
-  // Identify strength or weakness based on topics
+  // Identify strength or weakness based on topics inside the active session
   const performanceByTopic = topics.reduce((acc, topic) => {
-    const topicQuestions = questions.filter(q => q.topic === topic);
+    const topicQuestions = activeSessionQuestions.filter(q => q.topic === topic);
     const topicAnswered = topicQuestions.filter(q => !!userAnswers[q.id]);
     const topicCorrect = topicQuestions.filter(q => userAnswers[q.id] === q.correctAnswer);
     
@@ -194,17 +285,96 @@ export default function App() {
     return acc;
   }, {} as Record<string, { total: number; answered: number; correct: number; percentage: number }>);
 
+  // Historical accuracy rates & topic strengths/weaknesses
+  const hasHistory = cumulativeHistory.length > 0;
+  
+  const historyTopicStats = topics.reduce((acc, topic) => {
+    const topicAttempts = cumulativeHistory.filter(h => h.topic === topic);
+    const correct = topicAttempts.filter(h => h.isCorrect).length;
+    acc[topic] = {
+      total: topicAttempts.length,
+      correct: correct,
+      rate: topicAttempts.length > 0 ? Math.round((correct / topicAttempts.length) * 100) : 0
+    };
+    return acc;
+  }, {} as Record<string, { total: number; correct: number; rate: number }>);
+
+  // Find weakest and strongest areas
+  const topicStatsArray = Object.entries(historyTopicStats).filter(([_, s]) => s.total > 0);
+  
+  const weakestArea = topicStatsArray.length > 0 
+    ? topicStatsArray.reduce((min, current) => current[1].rate < min[1].rate ? current : min, topicStatsArray[0])
+    : null;
+
+  const strongestArea = topicStatsArray.length > 0
+    ? topicStatsArray.reduce((max, current) => current[1].rate > max[1].rate ? current : max, topicStatsArray[0])
+    : null;
+
+  const totalLifetimeAnswered = cumulativeHistory.length;
+  const totalLifetimeCorrect = cumulativeHistory.filter(h => h.isCorrect).length;
+  const lifetimeAccuracy = totalLifetimeAnswered > 0 
+    ? Math.round((totalLifetimeCorrect / totalLifetimeAnswered) * 100) 
+    : 0;
+
   // --- Handlers ---
+  const recordAttempt = (questionText: string, topic: string, isCorrect: boolean, mode: "practice" | "exam") => {
+    const newAttempt: AnswerAttempt = {
+      questionText,
+      topic,
+      isCorrect,
+      timestamp: Date.now(),
+      mode
+    };
+    setCumulativeHistory((prev) => {
+      const updated = [...prev, newAttempt];
+      localStorage.setItem("babok_cumulative_history", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const submitExamStats = () => {
+    const newAttempts = activeSessionQuestions.map(q => {
+      const selected = userAnswers[q.id];
+      if (!selected) return null;
+      const isCorrect = selected === q.correctAnswer;
+      return {
+        questionText: q.text,
+        topic: q.topic || "Solution Evaluation",
+        isCorrect,
+        timestamp: Date.now(),
+        mode: "exam" as const
+      };
+    }).filter((x): x is AnswerAttempt => x !== null);
+
+    if (newAttempts.length > 0) {
+      setCumulativeHistory((prev) => {
+        const updated = [...prev, ...newAttempts];
+        localStorage.setItem("babok_cumulative_history", JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
   const handleSelectAnswer = (choice: 'A' | 'B' | 'C' | 'D') => {
     if (!activeQuestion) return;
     
     // In Exam Mode, if submitted, block updates
     if (sessionMode === "exam" && examSubmitted) return;
 
-    setUserAnswers((prev) => ({
-      ...prev,
-      [activeQuestion.id]: choice,
-    }));
+    setUserAnswers((prev) => {
+      const updated = {
+        ...prev,
+        [activeQuestion.id]: choice,
+      };
+
+      // Record performance in practice mode on click
+      if (sessionMode === "practice") {
+        const isCorrect = choice === activeQuestion.correctAnswer;
+        recordAttempt(activeQuestion.text, activeQuestion.topic || "Solution Evaluation", isCorrect, "practice");
+      }
+
+      return updated;
+    });
   };
 
   const handleToggleFlag = (id: string) => {
@@ -261,7 +431,7 @@ export default function App() {
     e.preventDefault();
     e.stopPropagation();
     setDragDropActive(false);
-
+ 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       await handleUploadFile(e.dataTransfer.files[0]);
     }
@@ -323,6 +493,7 @@ export default function App() {
         }));
 
         setQuestions(newQuestions);
+        setTargetQuestionCount(newQuestions.length);
         setUserAnswers({});
         setCurrentIndex(0);
         setExamSubmitted(false);
@@ -344,6 +515,7 @@ export default function App() {
   const handleResetApp = () => {
     if (window.confirm("Are you sure you want to clear your current progress and restore the default BABOK v3 Question Bank?")) {
       setQuestions(defaultQuestions);
+      setTargetQuestionCount(defaultQuestions.length);
       setUserAnswers({});
       setFlaggedQuestions({});
       setCurrentIndex(0);
@@ -364,6 +536,7 @@ export default function App() {
   const submitExamSim = () => {
     if (window.confirm("Are you sure you want to submit your exam answers now?")) {
       setExamSubmitted(true);
+      submitExamStats();
     }
   };
 
@@ -496,6 +669,83 @@ export default function App() {
                 <p>{uploadError}</p>
               </div>
             )}
+          </div>
+
+          {/* Configure Test Size & Simulator Card */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm shadow-slate-100 space-y-4">
+            <h2 className="font-display font-semibold text-sm text-slate-800 flex items-center gap-2">
+              <Sliders className="h-4 w-4 text-indigo-600" />
+              Configure Session Size
+            </h2>
+            <p className="text-xs text-slate-500 font-normal">
+              Select or type the exact number of practice or exam questions to compile.
+            </p>
+
+            {/* Presets */}
+            <div className="grid grid-cols-5 gap-1">
+              {[15, 40, 100, 300, 500].map((preset) => (
+                <button
+                  key={preset}
+                  onClick={() => {
+                    setTargetQuestionCount(preset);
+                    setUserAnswers({});
+                    setCurrentIndex(0);
+                    setExamSubmitted(false);
+                    setExamStarted(false);
+                    setElapsedTime(0);
+                  }}
+                  className={`py-1.5 px-0.5 rounded-lg text-xs font-semibold border transition-all ${
+                    targetQuestionCount === preset
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                      : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Input */}
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="1"
+                max="1000"
+                placeholder="Custom (e.g. 240)"
+                value={customCountInput}
+                onChange={(e) => setCustomCountInput(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full"
+              />
+              <button
+                onClick={() => {
+                  const val = parseInt(customCountInput, 10);
+                  if (!isNaN(val) && val > 0) {
+                    setTargetQuestionCount(val);
+                    setUserAnswers({});
+                    setCurrentIndex(0);
+                    setExamSubmitted(false);
+                    setExamStarted(false);
+                    setElapsedTime(0);
+                    setCustomCountInput("");
+                  }
+                }}
+                className="bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0"
+              >
+                Apply
+              </button>
+            </div>
+
+            {/* Explanation of the 40 limit requested by user */}
+            <div className="bg-indigo-50/40 border border-indigo-100/50 rounded-xl p-3 text-[11px] text-slate-600 leading-relaxed font-normal">
+              <span className="font-bold text-indigo-700 flex items-center gap-1 mb-1">
+                <HelpCircle className="h-3.5 w-3.5 shrink-0" />
+                Why does my 500-question PDF show 40?
+              </span>
+              To guarantee extreme accuracy without server timeout issues, Gemini indexes a high-fidelity 40-question slice at a time.
+              <span className="block mt-1 text-slate-705">
+                <strong className="text-indigo-800 font-semibold">To practice 100, 300, or 500 questions continuously</strong>, choose your target size above. The exam engine synthesizes continuous mock assessments automatically!
+              </span>
+            </div>
           </div>
 
           {/* Exam Simulator controller, if mode is "exam" */}
@@ -1094,6 +1344,172 @@ export default function App() {
             </div>
           )}
 
+        </section>
+
+        {/* --- Lifetime Study Progress & Strength Analysis Dashboard --- */}
+        <section id="study-progress-dashboard" className="col-span-1 lg:col-span-4 mt-8 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+          {/* Accent lighting glow */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-violet-650/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-500/20 pb-6">
+              <div>
+                <span className="text-[10px] uppercase font-mono tracking-widest bg-indigo-500/25 text-indigo-300 px-3 py-1 rounded-full border border-indigo-400/20 inline-block mb-1 font-bold select-none">
+                  Adaptive Analytics
+                </span>
+                <h2 className="font-display font-semibold text-xl tracking-tight flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-indigo-400" />
+                  Study Progress & Strength Analysis
+                </h2>
+                <p className="text-xs text-indigo-200/75 mt-1 font-normal">
+                  Your lifetime progress is updated in real-time as you complete practice sessions and submit mock exams.
+                </p>
+              </div>
+
+              {hasHistory && (
+                <button
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to erase all your lifetime progress statistics?")) {
+                      setCumulativeHistory([]);
+                      localStorage.removeItem("babok_cumulative_history");
+                    }
+                  }}
+                  className="text-xs text-indigo-300/80 hover:text-white underline font-semibold transition"
+                >
+                  Reset Analytics History
+                </button>
+              )}
+            </div>
+
+            {hasHistory ? (
+              <div className="space-y-6">
+                
+                {/* Lifetime Metrics HUD */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4.5">
+                    <span className="text-[10px] text-indigo-300 uppercase font-mono tracking-wider font-semibold">Total Answered</span>
+                    <div className="text-2xl font-bold font-display mt-1">{totalLifetimeAnswered}</div>
+                    <p className="text-[10px] text-slate-400 font-mono mt-1">Practice & exam attempts combined</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4.5">
+                    <span className="text-[10px] text-indigo-300 uppercase font-mono tracking-wider font-semibold">Average Accuracy</span>
+                    <div className="text-2xl font-bold font-display mt-1 flex items-center gap-2">
+                      <span>{lifetimeAccuracy}%</span>
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                        lifetimeAccuracy >= 70 ? "bg-emerald-500/25 text-emerald-300 border border-emerald-400/10" : "bg-rose-500/25 text-rose-300 border border-rose-400/10"
+                      }`}>
+                        {lifetimeAccuracy >= 70 ? "Passing" : "Developing"}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-mono mt-1">Passing standard is 70% accuracy</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4.5">
+                    <span className="text-[10px] text-indigo-300 uppercase font-mono tracking-wider font-semibold">Exam Level Questions</span>
+                    <div className="text-2xl font-bold font-display mt-1 text-indigo-450">
+                      {cumulativeHistory.filter(h => h.mode === "exam").length} questions
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-mono mt-1">Completed under realistic timer pressure</p>
+                  </div>
+                </div>
+
+                {/* Cognitive Evaluation Breakdown: strengths vs weaknesses */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  {/* Left: Strength & Weakness Highlights */}
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6 space-y-4">
+                    <h3 className="text-sm font-semibold font-display tracking-tight text-indigo-300 uppercase font-bold text-xs font-mono">
+                      Cognitive Competency Highlights
+                    </h3>
+
+                    {weakestArea && (
+                      <div className="bg-rose-950/40 border border-rose-500/20 rounded-xl p-4 space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-bold text-rose-300 flex items-center gap-1.5 font-mono text-[11px] uppercase">
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-400"></span>
+                            Primary Weakness Area
+                          </span>
+                          <span className="font-bold text-rose-400">{weakestArea[1].rate}% accuracy</span>
+                        </div>
+                        <h4 className="text-sm font-semibold text-white tracking-tight">{weakestArea[0]}</h4>
+                        
+                        <div className="pt-2 border-t border-rose-500/10 mt-2 space-y-1.5 text-slate-300 text-[11px] font-normal leading-relaxed">
+                          <div>
+                            <strong className="text-white">Recommended Reading:</strong> <span className="text-indigo-200">{babokTopicRecommendations[weakestArea[0]]?.read || `BABOK V3 Chapter: ${weakestArea[0]}`}</span>
+                          </div>
+                          <div>
+                            <strong className="text-white">Revision Focus:</strong> <span className="text-indigo-200">{babokTopicRecommendations[weakestArea[0]]?.focus || "Review missed indices and consult verification reasoning guides."}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {strongestArea && strongestArea[0] !== weakestArea?.[0] && (
+                      <div className="bg-emerald-950/40 border border-emerald-500/20 rounded-xl p-4 space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-bold text-emerald-300 flex items-center gap-1.5 font-mono text-[11px] uppercase">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                            Primary Strength Area
+                          </span>
+                          <span className="font-bold text-emerald-400">{strongestArea[1].rate}% accuracy</span>
+                        </div>
+                        <h4 className="text-sm font-semibold text-white tracking-tight">{strongestArea[0]}</h4>
+                        
+                        <div className="pt-2 border-t border-emerald-500/10 mt-2 text-slate-300 text-[11px] font-normal leading-relaxed">
+                          Outstanding comprehension of BABOK core practices. Continue to review other chapters to balance out total preparedness.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right: Knowledge Area Progress Bars */}
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6 space-y-4">
+                    <h3 className="text-sm font-semibold font-display tracking-tight text-indigo-300 uppercase font-bold text-xs font-mono">
+                      BABOK® Knowledge Areas Accuracy Index
+                    </h3>
+
+                    <div className="space-y-3.5">
+                      {Object.entries(historyTopicStats).map(([topic, stats]) => {
+                        if (stats.total === 0) return null;
+                        return (
+                          <div key={topic} className="space-y-1 text-xs">
+                            <div className="flex justify-between items-center text-[11px]">
+                              <span className="text-slate-200 font-semibold truncate max-w-[70%]">{topic}</span>
+                              <span className="text-indigo-300 font-mono font-semibold text-[10px]">
+                                {stats.correct}/{stats.total} correct ({stats.rate}%)
+                              </span>
+                            </div>
+                            <div className="h-1.5 bg-indigo-950/90 rounded-full overflow-hidden border border-white/5 relative">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  stats.rate >= 70 
+                                    ? "bg-gradient-to-r from-emerald-500 to-teal-400" 
+                                    : stats.rate >= 50 
+                                      ? "bg-gradient-to-r from-amber-500 to-orange-400" 
+                                      : "bg-gradient-to-r from-rose-500 to-red-400"
+                                }`}
+                                style={{ width: `${stats.rate}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            ) : (
+              <div className="text-center py-10 bg-white/5 border border-white/10 border-dashed rounded-2xl">
+                <BarChart3 className="h-10 w-10 text-indigo-400/70 mx-auto mb-3" />
+                <h3 className="text-sm font-semibold mb-1">Analytical Insights Await</h3>
+                <p className="text-xs text-indigo-200/60 max-w-sm mx-auto">
+                  Begin answering practice questions or hit "Submit Exam" to load your historical analytics charts.
+                </p>
+              </div>
+            )}
+          </div>
         </section>
 
       </main>
