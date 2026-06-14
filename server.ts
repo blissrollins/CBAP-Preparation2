@@ -19,15 +19,38 @@ const upload = multer({
   limits: { fileSize: 40 * 1024 * 1024 } // 40MB limit for rich PDF documents
 });
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
+// Lazy-loaded Gemini Client following best-practice fullstack guidelines
+let aiClient: GoogleGenAI | null = null;
+
+function getGeminiClient(): GoogleGenAI {
+  if (!aiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is missing. Please configure it in Settings > Secrets to activate real-time BABOK deep verification.");
     }
+    aiClient = new GoogleGenAI({
+      apiKey: apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
   }
-});
+  return aiClient;
+}
+
+// Robust helper to parse JSON outputs in case any markdown delimiters are returned
+function cleanAndParseJSON(text: string | undefined): any {
+  if (!text) return {};
+  let cleaned = text.trim();
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```[a-zA-Z]*\n/, ""); // strip opening codeblocks
+    cleaned = cleaned.replace(/\n```$/, "");         // strip closing codeblocks
+    cleaned = cleaned.trim();
+  }
+  return JSON.parse(cleaned);
+}
 
 // Endpoint to verify a specific question with the official BABOK V3 Guide
 app.post("/api/verify-answer", async (req, res) => {
@@ -61,6 +84,7 @@ Perform a deep analysis:
 4. Give a clear explanation of *why* the correct answer is correct and analyze/neutralize the distractors (other choices).
     `;
 
+    const ai = getGeminiClient();
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: prompt,
@@ -81,7 +105,7 @@ Perform a deep analysis:
       }
     });
 
-    const result = JSON.parse(response.text?.trim() || "{}");
+    const result = cleanAndParseJSON(response.text);
     res.json(result);
   } catch (error: any) {
     console.error("Error in verify-answer:", error);
@@ -124,6 +148,7 @@ Please extract as many questions as possible from the document (up to 40 max in 
       }
     ];
 
+    const ai = getGeminiClient();
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: chatContent,
@@ -164,7 +189,7 @@ Please extract as many questions as possible from the document (up to 40 max in 
       }
     });
 
-    const result = JSON.parse(response.text?.trim() || "{}");
+    const result = cleanAndParseJSON(response.text);
     res.json(result);
   } catch (error: any) {
     console.error("Error in parse-document:", error);

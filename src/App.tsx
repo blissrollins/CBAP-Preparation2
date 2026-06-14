@@ -404,7 +404,8 @@ export default function App() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to verify on the server.");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to verify on the server. Status Code: ${response.status}`);
       }
 
       const data = await response.json();
