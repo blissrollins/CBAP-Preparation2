@@ -1,0 +1,6 @@
+{
+  "name": "BABOK Exam Studio",
+  "description": "Interactive CBAP exam preparation and question verification platform using official BABOK V3 guides.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
