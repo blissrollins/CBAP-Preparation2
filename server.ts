@@ -136,17 +136,19 @@ For each question:
 Please extract as many questions as possible from the document (up to 40 max in a single slice to avoid token overflow).
     `;
 
-    const chatContent = [
-      {
-        inlineData: {
-          mimeType: mimeType,
-          data: base64Data
+    const chatContent = {
+      parts: [
+        {
+          inlineData: {
+            mimeType: mimeType,
+            data: base64Data
+          }
+        },
+        {
+          text: prompt
         }
-      },
-      {
-        text: prompt
-      }
-    ];
+      ]
+    };
 
     const ai = getGeminiClient();
     const response = await ai.models.generateContent({

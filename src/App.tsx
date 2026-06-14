@@ -523,7 +523,16 @@ export default function App() {
       });
 
       if (!response.ok) {
-        throw new Error("Server responded with error formatting document.");
+        let errMsg = "Server responded with error formatting document.";
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) {
+            errMsg = errData.error;
+          }
+        } catch (e) {
+          // ignore parsing error
+        }
+        throw new Error(errMsg);
       }
 
       const parsedData = await response.json();
