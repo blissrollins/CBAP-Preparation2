@@ -513,33 +513,156 @@ export default function App() {
       }
 
       if (qList.length > 0) {
+        // Step 1: Scan for global 'ANSWERS' grid to backfill answers Map (e.g. from the 500-question sample provided)
+        const answersMap: { [key: number]: "A" | "B" | "C" | "D" } = {};
+        qList.forEach((q: any) => {
+          const content = String(q.content || q.text || q.question || "");
+          const answersIndex = content.toUpperCase().lastIndexOf("ANSWERS");
+          if (answersIndex !== -1) {
+            const answersPart = content.substring(answersIndex);
+            const regex = /\b(\d+)\s+([A-D])\b/gi;
+            let match;
+            while ((match = regex.exec(answersPart)) !== null) {
+              const qNum = parseInt(match[1], 10);
+              const ans = match[2].toUpperCase() as "A" | "B" | "C" | "D";
+              answersMap[qNum] = ans;
+            }
+          }
+        });
+
         const newQuestions: Question[] = qList.map((q: any, index: number) => {
-          const options = q.options || {
-            A: q.A || (Array.isArray(q.optionsList) && q.optionsList[0]) || "",
-            B: q.B || (Array.isArray(q.optionsList) && q.optionsList[1]) || "",
-            C: q.C || (Array.isArray(q.optionsList) && q.optionsList[2]) || "",
-            D: q.D || (Array.isArray(q.optionsList) && q.optionsList[3]) || ""
+          const qNum = Number(q.question_number || q.number || index + 1);
+          
+          let text = q.text || q.question || "";
+          let finalOptions = {
+            A: "Option A",
+            B: "Option B",
+            C: "Option C",
+            D: "Option D"
           };
           
-          const finalOptions = {
-            A: String(options.A || q.choiceA || q.optionA || "Option A"),
-            B: String(options.B || q.choiceB || q.optionB || "Option B"),
-            C: String(options.C || q.choiceC || q.optionC || "Option C"),
-            D: String(options.D || q.choiceD || q.optionD || "Option D"),
-          };
+          if (q.content && typeof q.content === "string") {
+            const lines = q.content.split('\n');
+            const optAReg = /^\s*[\u2022\-\*\s]*\s*\bA\s*[\)\.\:]\s*(.*)$/i;
+            const optBReg = /^\s*[\u2022\-\*\s]*\s*\bB\s*[\)\.\:]\s*(.*)$/i;
+            const optCReg = /^\s*[\u2022\-\*\s]*\s*\bC\s*[\)\.\:]\s*(.*)$/i;
+            const optDReg = /^\s*[\u2022\-\*\s]*\s*\bD\s*[\)\.\:]\s*(.*)$/i;
 
-          let rawAnswer = String(q.correctAnswer || q.answer || q.correct_answer || "A").trim().toUpperCase();
-          if (rawAnswer.startsWith("OPTION ")) {
-            rawAnswer = rawAnswer.replace("OPTION ", "").trim();
+            let currentOption: 'A' | 'B' | 'C' | 'D' | null = null;
+            const questionLines: string[] = [];
+            
+            let optionA = "";
+            let optionB = "";
+            let optionC = "";
+            let optionD = "";
+
+            for (let line of lines) {
+              const trimmed = line.trim();
+              
+              const matchA = line.match(optAReg);
+              const matchB = line.match(optBReg);
+              const matchC = line.match(optCReg);
+              const matchD = line.match(optDReg);
+
+              if (matchA) {
+                optionA = matchA[1].trim();
+                currentOption = 'A';
+              } else if (matchB) {
+                optionB = matchB[1].trim();
+                currentOption = 'B';
+              } else if (matchC) {
+                optionC = matchC[1].trim();
+                currentOption = 'C';
+              } else if (matchD) {
+                optionD = matchD[1].trim();
+                currentOption = 'D';
+              } else {
+                if (currentOption === null) {
+                  questionLines.push(line);
+                } else {
+                  if (currentOption === 'A') optionA += " " + trimmed;
+                  if (currentOption === 'B') optionB += " " + trimmed;
+                  if (currentOption === 'C') optionC += " " + trimmed;
+                  if (currentOption === 'D') optionD += " " + trimmed;
+                }
+              }
+            }
+
+            let rawText = questionLines.join('\n').trim();
+            rawText = rawText.replace(/^\s*Question\s*#?\d+\s*(?:-\s*)?Topic\s*\d+/gi, "");
+            rawText = rawText.replace(/^\s*Question\s*#?\d+\s*/gi, "");
+            
+            const filteredLines = rawText.split('\n').filter(l => {
+              const upper = l.toUpperCase();
+              return !upper.includes("NOT FOR PUBLIC CONSUMPTION") &&
+                     !upper.includes("SUCCESS GUARANTEE") &&
+                     !upper.includes("BABOK V3 (ASSESSMENT)") &&
+                     !upper.includes("CBAP |") &&
+                     !upper.includes("ANSWERS");
+            });
+            
+            text = filteredLines.join('\n').trim();
+            
+            const cleanOption = (val: string) => {
+              return val.split('\n').filter(l => {
+                const u = l.toUpperCase();
+                return !u.includes("NOT FOR PUBLIC CONSUMPTION") &&
+                       !u.includes("SUCCESS GUARANTEE") &&
+                       !u.includes("BABOK V3") &&
+                       !u.includes("CBAP |") &&
+                       !u.includes("ANSWERS");
+              }).join('\n').trim();
+            };
+
+            finalOptions = {
+              A: cleanOption(optionA) || "Option A",
+              B: cleanOption(optionB) || "Option B",
+              C: cleanOption(optionC) || "Option C",
+              D: cleanOption(optionD) || "Option D",
+            };
+          } else {
+            const options = q.options || {
+              A: q.A || (Array.isArray(q.optionsList) && q.optionsList[0]) || "",
+              B: q.B || (Array.isArray(q.optionsList) && q.optionsList[1]) || "",
+              C: q.C || (Array.isArray(q.optionsList) && q.optionsList[2]) || "",
+              D: q.D || (Array.isArray(q.optionsList) && q.optionsList[3]) || ""
+            };
+            
+            finalOptions = {
+              A: String(options.A || q.choiceA || q.optionA || "Option A"),
+              B: String(options.B || q.choiceB || q.optionB || "Option B"),
+              C: String(options.C || q.choiceC || q.optionC || "Option C"),
+              D: String(options.D || q.choiceD || q.optionD || "Option D"),
+            };
           }
-          const validAnswers: ("A" | "B" | "C" | "D")[] = ["A", "B", "C", "D"];
-          const cleanAnswer: "A" | "B" | "C" | "D" = validAnswers.includes(rawAnswer as any) ? (rawAnswer as any) : "A";
+
+          // Compute correct answer from grid database mapping, inline block content, or explicit values
+          let cleanAnswer: "A" | "B" | "C" | "D" = "A";
+          if (answersMap[qNum]) {
+            cleanAnswer = answersMap[qNum];
+          } else {
+            let rawAnswer = String(q.correctAnswer || q.answer || q.correct_answer || "A").trim().toUpperCase();
+            if (rawAnswer.startsWith("OPTION ")) {
+              rawAnswer = rawAnswer.replace("OPTION ", "").trim();
+            }
+            const validAnswers: ("A" | "B" | "C" | "D")[] = ["A", "B", "C", "D"];
+            cleanAnswer = validAnswers.includes(rawAnswer as any) ? (rawAnswer as any) : "A";
+          }
+
+          // Try to discover the topic dynamically if possible
+          let topicValue = q.topic || "Uploaded JSON Questions";
+          if (q.content) {
+            const topicMatch = q.content.match(/Topic\s*(\d+|\w+)/i);
+            if (topicMatch) {
+              topicValue = `Topic ${topicMatch[1]}`;
+            }
+          }
 
           return {
             id: `uploaded-json-${Date.now()}-${index}`,
-            number: Number(q.number || index + 1),
-            topic: q.topic || "Uploaded JSON Questions",
-            text: q.text || q.question || "Undefined Question Text",
+            number: qNum,
+            topic: topicValue,
+            text: text || "Undefined Question Text",
             options: finalOptions,
             correctAnswer: cleanAnswer,
             explanation: q.explanation || q.rationale || "No explanation provided.",
