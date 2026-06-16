@@ -2,1304 +2,468 @@ import { Question } from '../types';
 
 export const defaultQuestions: Question[] = [
   {
-    id: "q1",
-    number: 1,
-    topic: "Solution Evaluation",
-    text: "What is the term used to describe the cost of the solution after the solution has been implemented in production by a vendor?",
+    id: "q300",
+    number: 300,
+    topic: "Requirements Analysis and Design Definition",
+    text: "A team is working on a user privilege and access control system. A business analyst (BA) selects use cases as the technique for requirements specification. What is the relationship between use cases 'Create a role' and 'Find a role' when there is a high level of formality?",
     options: {
-      A: "Total ownership costing",
-      B: "Lifecycle maintenance fees",
-      C: "Sustainability fees",
-      D: "Total cost of ownership"
+      A: "Validate",
+      B: "Derive",
+      C: "Necessity",
+      D: "Satisfy"
     },
-    correctAnswer: "D"
+    correctAnswer: "C",
+    babokSection: "Section 5.1: Trace Requirements",
+    explanation: "According to BABOK v3, under Requirements Traceability (Section 5.1), the Necessity relationship is applied when a requirement is only functional or meaningful if another requirement is implemented. In a highly formal system, you cannot 'Create a role' without first being able to check if it already exists ('Find a role'), thus establishing a relationship of Necessity."
   },
   {
-    id: "q2",
-    number: 2,
+    id: "q301",
+    number: 301,
     topic: "Strategy Analysis",
-    text: "Enterprise analysis produces just five outputs. Which one of the following is an output of the enterprise analysis tasks?",
+    text: "A business analyst (BA) works for a financial institution that wants to acquire new systems and migrate all future business operations to the new systems. The BA is responsible for performing a gap analysis and has reviewed the current state of systems. What is the next task that the BA needs to do to complete the gap analysis?",
     options: {
-      A: "Assumptions and constraints",
-      B: "Stakeholder concerns",
-      C: "Solution performance assessment",
-      D: "Solution approach"
+      A: "Identify performance measures",
+      B: "Define the future state capabilities",
+      C: "Categorize risks factors",
+      D: "Select the stakeholder engagement approach"
     },
-    correctAnswer: "D"
+    correctAnswer: "B",
+    babokSection: "Section 6.2: Define Future State",
+    explanation: "According to BABOK v3, gap analysis is a direct comparison between the current state capabilities and the desired future state capabilities. Since the current state has already been reviewed, the next logical task for the BA is to define the future state capabilities (Section 6.2) to determine what gaps must be bridged."
   },
   {
-    id: "q3",
-    number: 3,
+    id: "q302",
+    number: 302,
     topic: "Requirements Life Cycle Management",
-    text: "All of the following stakeholders participate in the prioritization of requirements except for which one?",
+    text: "A business analyst (BA) has completed the prioritization of requirements with various risk-averse stakeholder groups. Several requirements conflict with a regulatory requirement that, if not implemented, will result in a fine from a regulatory body. What should the BA do?",
     options: {
-      A: "Implementation subject matter expert",
-      B: "Project team",
-      C: "Domain subject matter expert",
-      D: "Project manager"
+      A: "Measure the value of the other requirements against the penalty of not meeting the regulatory requirement",
+      B: "Compare the regulatory requirement to the recommended solution",
+      C: "Determine a means to work around the regulatory requirement",
+      D: "Inform the stakeholders that the regulatory requirement takes precedence over other requirements"
     },
-    correctAnswer: "B"
+    correctAnswer: "C",
+    babokSection: "Section 5.3: Prioritize Requirements",
+    explanation: "According to BABOK v3 Section 5.3, when requirements conflict with regulatory requirements, BAs must collaborate with stakeholders to find acceptable workarounds or alternative options. Option C refers to finding a means to comply or work around conflicts, satisfying regulatory constraints without neglecting stakeholder needs."
   },
   {
-    id: "q4",
-    number: 4,
-    topic: "Requirements Analysis and Design Definition",
-    text: "Management has asked that you create a model of the requirements so the stakeholders can better understand the requirements and the project as a whole. Which of the following statements best describes a model?",
+    id: "q303",
+    number: 303,
+    topic: "Requirements Life Cycle Management",
+    text: "A large company has thousands of geographically dispersed employees and dozens of IT systems. Multiple business analysts (BAs) work in parallel on various requirements with different stakeholders. When considered in isolation, the requirements look meaningful and valuable to those who approved them. However, when it comes to implementation, some of the requirements appear to be contradicting each other. A lead BA recognizes that adding some traceability information would help uncover such conflicts early in the process. To what should the BA trace the requirements?",
     options: {
-      A: "Models are slices of the project solution.",
-      B: "Models simplify the requirements for common stakeholders.",
-      C: "Models are statistics for the return on investment, time saved, and other mathematics.",
-      D: "Models abstract and simplify reality."
+      A: "Stakeholder tasks",
+      B: "Business needs",
+      C: "Organizational functions",
+      D: "Solution components"
     },
-    correctAnswer: "D"
+    correctAnswer: "D",
+    babokSection: "Section 5.1: Trace Requirements",
+    explanation: "Traceability to solution components (Section 5.1) allows business analysts to detect conflicting demands on system elements. By tracing the requirements back to specific solution components, contradiction and redundancy across parallel teams can be identified before implementation."
   },
   {
-    id: "q5",
-    number: 5,
+    id: "q304",
+    number: 304,
+    topic: "Elicitation and Collaboration",
+    text: "A multi-domain project has stakeholders with different technical backgrounds. The presentation prepared by the business analyst (BA) for domain 1 was also used for domain 2 but the presentation was not clear and caused concerns for stakeholders in domain 2. What can the BA do to alleviate the concerns of the stakeholders in domain 2?",
+    options: {
+      A: "Create a survey applicable for the stakeholders in domain 2.",
+      B: "Produce an estimation applicable for the stakeholders in domain 2.",
+      C: "Present a model applicable for the stakeholders in domain 2.",
+      D: "Develop a backlog applicable for the stakeholders in domain 2."
+    },
+    correctAnswer: "C",
+    babokSection: "Section 4.4: Manage Stakeholder Collaboration",
+    explanation: "Under Section 4.4, when dealing with diverse groups, BAs must choose communication styles and visual formats that match the audience's interests and technical baseline. Presenting an appropriate requirements model (using common metaphors or domain-specific notation) helps clarify complexity and resolve stakeholder concerns."
+  },
+  {
+    id: "q305",
+    number: 305,
+    topic: "Solution Evaluation",
+    text: "The objective of a solution implemented was to increase the number of customer calls resolved per hour. When using basic statistical sampling concepts, what does the business analyst (BA) need to consider?",
+    options: {
+      A: "Metrics and Key Performance Indicators (KPIs)",
+      B: "Frequency and Timing",
+      C: "Financial Analysis",
+      D: "Benchmarking and Market Analysis"
+    },
+    correctAnswer: "A",
+    babokSection: "Section 8.1: Measure Solution Performance",
+    explanation: "According to BABOK v3 Section 8.1, when measuring solution performance, measurements are collected using Metrics and Key Performance Indicators (KPIs). When applying basic statistical sampling, these formal indicators are defined to gauge output accuracy, volume, and latency correctly."
+  },
+  {
+    id: "q306",
+    number: 306,
+    topic: "Strategy Analysis",
+    text: "A sports wristwatch product manufacturer wants to add a blood sugar monitoring toolkit to the watch. Market research has confirmed that the most profitable segment of the manufacturer's target customer is looking for this feature. The business analyst (BA) worked with the product owner to finalize the set of requirements and design options and then defined multiple approaches for implementing the feature. At this point, the solutions' team agreed that they were unable to accurately assess the merits of each of the proposed solutions. What is the possible reason?",
+    options: {
+      A: "Requirements are not allocated to solution components",
+      B: "Too many approaches are dividing the team",
+      C: "Business needs are unclear to the team",
+      D: "Requirements and design options are not detailed enough"
+    },
+    correctAnswer: "C",
+    babokSection: "Section 6.1: Analyze Current State",
+    explanation: "Under Section 6.1 and 6.2, if current-state business needs, values, and objectives are unclear or poorly defined, the solutions team cannot accurately prioritize or grade the merits of proposed design options. The core business needs drive solution assessment."
+  },
+  {
+    id: "q307",
+    number: 307,
     topic: "Business Analysis Planning and Monitoring",
-    text: "What BA plan describes the stakeholder groups, communication needs, and the level of formality that is appropriate for the requirements?",
+    text: "The performance of the business analysis team has been reviewed by management to determine areas for improvement. The manager would like to help the business analysts (BAs) develop their skills and address the corrective actions. What is a technique that may help achieve this goal?",
     options: {
-      A: "Requirements management plan",
-      B: "Project management plan",
-      C: "Scope management plan",
-      D: "Business analysis communication plan"
+      A: "Lessons learned",
+      B: "Team restructure",
+      C: "Weekly meetings",
+      D: "Team building"
     },
-    correctAnswer: "D"
+    correctAnswer: "A",
+    babokSection: "Section 3.5: Identify Business Analysis Performance Improvements",
+    explanation: "According to BABOK v3, under Section 3.5, the Lessons Learned technique is highly useful to identify performance improvement opportunities, document positive and negative experiences, and build skills through direct retrospectives."
   },
   {
-    id: "q6",
-    number: 6,
-    topic: "Requirements Life Cycle Management",
-    text: "You are the business analyst for a smaller project where there are few requirements. Management would still like you to create a method to trace the few requirements. What type of matrix would be best in this instance?",
+    id: "q308",
+    number: 305,
+    topic: "Solution Evaluation",
+    text: "The stakeholders are interested in ensuring that expected value is assessed prior to acceptance. To determine if the solution is providing expected value and ensure the accuracy of the measurements, the stakeholders and the business analyst (BA) determine that they need to measure __________.",
     options: {
-      A: "Roles and responsibility matrix",
-      B: "RACI matrix",
-      C: "Coverage matrix",
-      D: "Requirements trace matrix"
+      A: "benefits, penalties, and costs.",
+      B: "strategy, solution, and scope.",
+      C: "impacts, problems, and dependencies.",
+      D: "performance, trends, and variances."
     },
-    correctAnswer: "C"
+    correctAnswer: "A",
+    babokSection: "Section 8.1: Measure Solution Performance",
+    explanation: "According to BABOK v3 Section 8.1, measuring benefits, penalties, and costs delivers a structured framework for stakeholders to evaluate if solutions are performing at expected levels and realizing projected business value prior to formal acceptance (value validation)."
   },
   {
-    id: "q7",
-    number: 7,
+    id: "q309",
+    number: 309,
+    topic: "Solution Evaluation",
+    text: "A card printing solution is comprised of 4 stages: Loading, Printing, Packaging and Sorting. Loading and sorting of cards is done manually through operators, while printing and packaging are automated. The loading stage requires the operator to load 100 cards after an alarm is raised. Sorting requires an operator to distribute each package based on the printed address into the appropriate delivery box. Which stage should be assessed as the most likely to increase process inefficiencies?",
+    options: {
+      A: "Loading",
+      B: "Packaging",
+      C: "Sorting",
+      D: "Printing"
+    },
+    correctAnswer: "C",
+    babokSection: "Section 8.3: Assess Solution Limitations",
+    explanation: "Sorting requires the manual parsing of printed address information to place cards into appropriate boxes. This human-centric task has higher complexity and variability than loading 100 on an alarm, and is therefore the bottleneck most likely to increase process inefficiencies."
+  },
+  {
+    id: "q310",
+    number: 310,
+    topic: "Solution Evaluation",
+    text: "A large health care provider has recently purchased and installed a solution that automates some of the activities that coordinate patient recovery activities. A business analyst (BA) is in the process of evaluating this solution and analyzing the performance measures against the value it brings. At this juncture, the BA has uncovered some threats in the solution which could hamper its performance and erode the value it brings. Which technique will enable the BA to record and handle these on an ongoing basis?",
+    options: {
+      A: "Risk Analysis and Management",
+      B: "Root Cause Analysis",
+      C: "Solution Performance Analysis",
+      D: "Solution Scope"
+    },
+    correctAnswer: "A",
+    babokSection: "Section 8.5: Recommend Actions to Increase Solution Value",
+    explanation: "Risk Analysis and Management (Section 8.5) is the core technique used to continuously record, monitor, evaluate, and handle potential operational threats, errors, and risk factors that might erode overall solution value."
+  },
+  {
+    id: "q311",
+    number: 311,
+    topic: "Strategy Analysis",
+    text: "An insurance company has two actuarial teams: Life and Non-Life. The Life team has a specialized tool to make their calculations while the Non-life team performs calculations manually. Last year the company bought a single solution to support both groups. The Non-Life team continues to do certain calculations manually to conform to their processes. Which type of analysis was missed prior to purchasing a solution?",
+    options: {
+      A: "Operational assessment",
+      B: "Organizational structure",
+      C: "Stakeholder impact analysis",
+      D: "Stakeholder location"
+    },
+    correctAnswer: "C",
+    babokSection: "Section 6.4: Define Change Strategy",
+    explanation: "Stakeholder impact analysis (Section 6.4) identifies how users perform daily work and what changes their actual workflows will undergo. Bypassing stakeholder impact analysis failed to identify that the Non-Life team's manual process would cause them to resist the new calculations tool."
+  },
+  {
+    id: "q312",
+    number: 312,
+    topic: "Elicitation and Collaboration",
+    text: "A business analyst (BA) is working on a stakeholder collaboration plan. The main goal is to select the approaches that work best to meet the needs of external and internal stakeholders. Which aspects should be taken into account?",
+    options: {
+      A: "Collaboration skills of BA",
+      B: "Solution design",
+      C: "Timing and frequency of collaboration",
+      D: "Business governance plan"
+    },
+    correctAnswer: "C",
+    babokSection: "Section 3.2: Plan Stakeholder Engagement",
+    explanation: "Planning stakeholder engagement includes defining communication timelines, preferences, and the timing/frequency of workshops or touchpoints (Section 3.2). This ensures that collaborative pathways work effectively for both internal and external members."
+  },
+  {
+    id: "q313",
+    number: 313,
+    topic: "Strategy Analysis",
+    text: "While validating requirements for a software implementation project, the business analyst (BA) needs to identify scenarios that would alter the benefit delivered by a requirement. Which of the following techniques should the BA use to identify such scenarios?",
+    options: {
+      A: "Risk Analysis and Management",
+      B: "Metrics and Key Performance Indicators",
+      C: "Data Modeling",
+      D: "Document Analysis"
+    },
+    correctAnswer: "A",
+    babokSection: "Section 6.3: Assess Risks",
+    explanation: "Risk Analysis and Management is utilized to identify and analyze scenarios that might alter, restrict, or completely eliminate the targeted benefit delivered by requirements (Section 6.3)."
+  },
+  {
+    id: "q314",
+    number: 314,
+    topic: "Elicitation and Collaboration",
+    text: "In a software implementation project, the designated business analyst (BA) has conducted all the elicitation activities and now needs to confirm the elicitation results. What is used by the BA Professional to guide which sources of information and which results are to be compared?",
+    options: {
+      A: "Information management approach",
+      B: "Business analysis plan",
+      C: "Elicitation activity plan",
+      D: "Business analysis approach"
+    },
+    correctAnswer: "B",
+    babokSection: "Section 4.3: Confirm Elicitation Results",
+    explanation: "Under Section 4.3, BAs use their Business Analysis Plan to determine which sources of historical information, policy lists, or stakeholder results should be validated, compared, and checked for consistency."
+  },
+  {
+    id: "q315",
+    number: 315,
+    topic: "Strategy Analysis",
+    text: "A big construction company has grown into a group of 17 companies spread across the country. The rationale behind forming the group was to become more competitive in bidding for federal and regional government contracts. Another reason was to increase consolidated profitability by lowering the cost of materials and using combined assets more efficiently. Disjointed technological capabilities of the individual companies impede gathering the data needed to make decisions on both handling materials and allocating the resources. What improvement opportunity does this represent?",
+    options: {
+      A: "Create a business model canvas to outline business needs",
+      B: "Deploy a new system across the companies",
+      C: "Enhance access to the relevant information",
+      D: "Develop a repository of information from each company"
+    },
+    correctAnswer: "C",
+    babokSection: "Section 6.1: Analyze Current State",
+    explanation: "Improving disjointed technological capabilities to compile combined analytics constitutes an opportunity to Enhance Access to Relevant Information (Section 6.1), allowing executives to drive better consolidation and material pricing strategies."
+  },
+  {
+    id: "q316",
+    number: 316,
     topic: "Requirements Analysis and Design Definition",
-    text: "You have many solutions available to an identified problem. You would like a way to quickly and fairly determine which solution is the best choice. Which of the following approaches would allow you to determine the top-rated solutions?",
+    text: "A software company has won a contract to implement its product for a client. As part of the implementation work, a business analyst (BA) is asked to compile information about the other client applications that will integrate with the new system and provide the information graphically. To establish the boundaries of the new system, the business leaders need to know the interfacing client applications and the type of information that will be exchanged between the existing and new systems. Which type of diagram should the BA use?",
     options: {
-      A: "Scoring system",
-      B: "Acceptance and evaluation criteria",
+      A: "Process",
+      B: "Sequence",
+      C: "Activity",
+      D: "Context"
+    },
+    correctAnswer: "D",
+    babokSection: "Section 7.1: Specify and Model Requirements",
+    explanation: "According to BABOK v3 Section 7.1, a Context Diagram (which is a type of scope model) graphically represents a system in its environment, showing the external interfacing entities and the core flows of information exchanged across boundaries."
+  },
+  {
+    id: "q317",
+    number: 317,
+    topic: "Strategy Analysis",
+    text: "Contracts are currently managed by more than 20 contract owners across the organization, each happily managing in their own way. A business analyst (BA) is tasked to elicit requirements for centrally managing software maintenance and license contracts. Which of the following does the BA need to carry out first?",
+    options: {
+      A: "Identify business requirements",
+      B: "Identify future state conditions",
+      C: "Recommend an off the shelf product",
+      D: "Complete an enterprise readiness assessment"
+    },
+    correctAnswer: "A",
+    babokSection: "Section 6.1: Analyze Current State",
+    explanation: "Before defining any future state, recommending solutions, or auditing technical capacity, a business analyst must identify the overall high-level Business Requirements and strategic goals of the initiative (Section 6.1)."
+  },
+  {
+    id: "q318",
+    number: 318,
+    topic: "Requirements Life Cycle Management",
+    text: "An online stock trading system is under implementation. Which of the following events can be considered as a trigger for re-prioritization?",
+    options: {
+      A: "A team member has left the project and is being replaced",
+      B: "A new initial public offering in the stock market is introduced",
+      C: "Further dependencies among solution components are uncovered",
+      D: "Number of reported quality defects is growing through phases"
+    },
+    correctAnswer: "C",
+    babokSection: "Section 5.3: Prioritize Requirements",
+    explanation: "Uncovering further dependencies (or discovering conflicts) among solution elements requires re-evaluating the sequence or feasibility of requirements, eliciting mandatory re-prioritization (Section 5.3)."
+  },
+  {
+    id: "q319",
+    number: 319,
+    topic: "Elicitation and Collaboration",
+    text: "The business sponsor of a project to automate a high risk, high profile process has expressed concerns that some activities people perform will be missed. The business analyst (BA) has already created a process flow with associated user stories. Which of the following actions will address the sponsor's concerns?",
+    options: {
+      A: "Record the concerns in the risk register",
+      B: "Schedule a formal review with the stakeholders",
+      C: "Demonstrate traceability to the business case",
+      D: "Review the final approved elicitation results"
+    },
+    correctAnswer: "B",
+    babokSection: "Section 4.4: Manage Stakeholder Collaboration",
+    explanation: "Scheduling an elements/story walkthrough or a formal stakeholder review meeting (Section 4.4) is the best and most transparent collaborative asset to gain alignment, alleviate safety/functional concerns, and prove that no manual actions were missed."
+  },
+  {
+    id: "q320",
+    number: 320,
+    topic: "Requirements Analysis and Design Definition",
+    text: "Whilst working on business requirements to improve a process, a business analyst (BA) has created flowcharts from the viewpoint of several different users. The stakeholders have expressed some confusion because the flows seem inconsistent. What ensures that the process models relate to each other?",
+    options: {
+      A: "Roles and Permissions Matrix",
+      B: "Organizational Model",
+      C: "Future State Description",
+      D: "Information Architecture"
+    },
+    correctAnswer: "A",
+    babokSection: "Section 7.1: Specify and Model Requirements",
+    explanation: "In process mapping, when different operators possess different lanes or viewpoints, a Roles and Responsibilities Matrix (or Access Matrix) clarifies the relative boundaries and ensures distinct flows connect accurately without contradiction."
+  },
+  {
+    id: "q321",
+    number: 312,
+    topic: "Strategy Analysis",
+    text: "The business analyst (BA) has been tasked with assessing and recommending the best solution that fits an organization's need for a new third-party sales tool. What technique would be used for identifying suitable options?",
+    options: {
+      A: "Balanced scorecard",
+      B: "Decision analysis",
       C: "Vendor assessment",
-      D: "Voting system"
+      D: "Process analysis"
     },
-    correctAnswer: "A"
+    correctAnswer: "A",
+    babokSection: "Section 6.4: Define Change Strategy",
+    explanation: "According to BABOK v3 Section 6.4, when identifying potential solution approaches or opportunities, the Balanced Scorecard is specifically used to evaluate high-level strategic alignment and map strategic dimensions against options."
   },
   {
-    id: "q8",
-    number: 8,
+    id: "q322",
+    number: 322,
     topic: "Business Analysis Planning and Monitoring",
-    text: "When an organization is using a change-driven approach to business analysis, how are communications managed?",
+    text: "A business analyst (BA) is defining the decision making process for changes raised during a project and wants to understand the decision making authorities within the company. What might the BA do to gather this information?",
     options: {
-      A: "Communications in a change-driven approach to business analysis focus more on the frequency of communication.",
-      B: "Communications in a change-driven approach typically use face-to-face channels.",
-      C: "Communications in a change-driven approach focus more on formal communications.",
-      D: "Communications in a change-driven approach are all ad hoc."
+      A: "Market analysis",
+      B: "Focus group",
+      C: "Survey",
+      D: "Cost benefit analysis"
     },
-    correctAnswer: "A"
+    correctAnswer: "B",
+    babokSection: "Section 3.3: Plan Business Analysis Governance",
+    explanation: "Focus groups (Section 3.3) and structured collaborative meetings with key managers are excellent to pinpoint corporate hierarchies, discover who has change approvals, and formalize decision-making roles for governance."
   },
   {
-    id: "q9",
-    number: 9,
-    topic: "Requirements Life Cycle Management",
-    text: "Management has asked you to create a method to store the project requirements including those under development, under review, and those which have been approved. What is management asking you to create?",
-    options: {
-      A: "A change management system",
-      B: "A repository",
-      C: "A project scope statement",
-      D: "A requirements register"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q10",
-    number: 10,
-    topic: "Strategy Analysis",
-    text: "You are identifying assumptions within the business solution. Which one of the following is an assumption?",
-    options: {
-      A: "The vendor believes the hardware should arrive by December 1",
-      B: "The software must be compatible with Windows Vista",
-      C: "The software must cost less than $99 per license",
-      D: "The hardware must cost less than $450 per unit"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q11",
-    number: 11,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Why is it so important to identify stakeholders early in the business analysis process?",
-    options: {
-      A: "To ensure the BA knows who to report to.",
-      B: "To ensure the BA knows who to bill for the project.",
-      C: "To help ensure the timely delivery of requirements deliverables.",
-      D: "To ensure stakeholders know who the business analyst is."
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q12",
-    number: 12,
-    topic: "Requirements Life Cycle Management",
-    text: "What does it mean 'to trace a requirement'?",
-    options: {
-      A: "To look at a requirement and link risk, cost, and scope to other team artifacts.",
-      B: "To look at a requirement and the others it is related to, linking business requirements to stakeholder and solution requirements to components.",
-      C: "To look at a requirement and link it directly to project work breakdown structure components.",
-      D: "To track a requirement from inception to completion to identify defects and risks."
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q13",
-    number: 13,
-    topic: "Requirements Life Cycle Management",
-    text: "When do change requests generally increase in a project lifecycle?",
-    options: {
-      A: "During the project's launch.",
-      B: "Towards the beginning of the project.",
-      C: "During the project scope management processes.",
-      D: "Towards the end of the project."
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q14",
-    number: 14,
-    topic: "Requirements Analysis and Design Definition",
-    text: "Ben is working on a solution to improve a laser printer. He has taken it apart, identified each component, and documented each component's purpose. What type of requirements organization is this?",
-    options: {
-      A: "Process modeling",
-      B: "Data modeling",
-      C: "Functional decomposition",
-      D: "Scope modeling"
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q15",
-    number: 15,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "An organization is using a plan-driven approach for deliverables. In this approach how will requirements be captured?",
-    options: {
-      A: "Appropriate documentation at the discretion of the BA team.",
-      B: "Using the project management information system.",
-      C: "Using whatever business analysis forms are most appropriate.",
-      D: "Using standardized templates."
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q16",
-    number: 16,
-    topic: "Strategy Analysis",
-    text: "What part of defining the business needs process will evaluate the ends that the organization is seeking to achieve?",
-    options: {
-      A: "Business goals and objectives",
-      B: "Alternative identification",
-      C: "Solution assessment",
-      D: "Requirements"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q17",
-    number: 17,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "What type of business analysis approach focuses on the rapid delivery of business value in short iterations?",
-    options: {
-      A: "Risk-driven",
-      B: "Change-driven",
-      C: "Risk-laden",
-      D: "Profit-driven"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q18",
-    number: 18,
-    topic: "Requirements Analysis and Design Definition",
-    text: "Wanda is documenting textual requirements. She must describe the capabilities, conditions to operate, and what third component?",
-    options: {
-      A: "Any constraints that may prevent the solution from fulfilling the requirement",
-      B: "Write in the active voice",
-      C: "Describe a situation or problem",
-      D: "Express only one requirement at a time"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q19",
-    number: 19,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "The business analysis approach generally defines all of the following attributes except which on?",
-    options: {
-      A: "Requirements for solutions acceptance",
-      B: "Deliverables",
-      C: "Team roles",
-      D: "Analysis technique"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q20",
-    number: 20,
+    id: "q323",
+    number: 323,
     topic: "Elicitation and Collaboration",
-    text: "Gary is preparing a requirements presentation for a large project. Before making the presentation, what should he do first as preparation?",
+    text: "A company wants to launch an existing product in another channel and the business analyst (BA) is starting to perform the stakeholder analysis. Legend: Influence/Impact 1 to 5 (1 = very limited: 5 = very high). What values for influence and impact will the BA assign to marketing?",
     options: {
-      A: "Determine an appropriate format for the presentation.",
-      B: "Confirm that he has the authority to host the presentation.",
-      C: "Confirm that the stakeholders have signed off on the requirements.",
-      D: "Hire a scribe to keep the minutes of the meeting."
+      A: "Influence = 3 and impact = 3",
+      B: "Influence = 1 and impact = 3",
+      C: "Influence = 3 and impact = 1",
+      D: "Influence = 5 and impact = 5"
     },
-    correctAnswer: "A"
+    correctAnswer: "D",
+    babokSection: "Section 3.2: Plan Stakeholder Engagement",
+    explanation: "Launching a product into a brand new sales channel has direct and paramount consequences on the marketing department, making marketing a key driver with very high influence (5) and maximum operational impact (5) (Section 3.2)."
   },
   {
-    id: "q21",
-    number: 21,
-    topic: "Requirements Analysis and Design Definition",
-    text: "You are creating the solution scope definition. Which of the following should be included in the definition?",
-    options: {
-      A: "Business case",
-      B: "Technical dependencies",
-      C: "Elicitation techniques",
-      D: "Organization readiness assessment"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q22",
-    number: 22,
-    topic: "Strategy Analysis",
-    text: "What business analysis element tries to identify as many potential options as possible to meet the business objectives and fill identified gaps in capabilities?",
-    options: {
-      A: "Ranking of approaches",
-      B: "Decision analysis",
-      C: "Documentation of assumptions and constraints",
-      D: "Alternative generation"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q23",
-    number: 23,
-    topic: "Solution Evaluation",
-    text: "Paul is examining a single solution to determine if it carries enough business value to justify its implementation. What task is he performing?",
-    options: {
-      A: "Define transition requirements",
-      B: "Assess proposed solution",
-      C: "Assess organizational readiness",
-      D: "Allocate requirements"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q24",
-    number: 24,
+    id: "q324",
+    number: 324,
     topic: "Elicitation and Collaboration",
-    text: "Gary and Janet disagree over a requirement for the type of software to be installed on a server. What must happen before formal approval can be offered?",
+    text: "A business analyst (BA) facilitated elicitation activities with subject matter experts and end users using observation, workshops, and interviews. After comparing the results, how should the BA resolve the variations?",
     options: {
-      A: "The conflict must be resolved through research, resolution, or third-party mediation.",
-      B: "Determine who has seniority in the company.",
-      C: "Remove the conflict from the solution scope.",
-      D: "The BA must make a final decision."
+      A: "Identify a few key stakeholders to resolve the conflicts",
+      B: "Set up additional activities to collaboratively resolve the issues",
+      C: "Remove requirements that cause differences",
+      D: "Weight the results from the observation because it is more reliable"
     },
-    correctAnswer: "A"
+    correctAnswer: "B",
+    babokSection: "Section 4.3: Confirm Elicitation Results",
+    explanation: "When elicitation techniques yield conflicting requirements or differing perspectives, Section 4.3 instructs BAs to hold collaborative workshops or focus groups to bring stakeholders together and resolve discrepancies."
   },
   {
-    id: "q25",
-    number: 25,
-    topic: "Requirements Life Cycle Management",
-    text: "Why does a business analyst prioritize requirements?",
-    options: {
-      A: "To determine the cost of each requirement.",
-      B: "To determine the schedule for each requirement.",
-      C: "To determine which requirements are most critical so analysis and implementation efforts focus on them.",
-      D: "To complete additional risk analysis on critical tasks."
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q26",
-    number: 26,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which one of the following best describes the RACI chart in the conduct stakeholder analysis process?",
-    options: {
-      A: "It is a matrix that uses the Responsible, Accountable, Consult, and Inform tasks as part of the stakeholder analysis process.",
-      B: "It identifies when stakeholders are needed in the BA duties.",
-      C: "It is a matrix that uses Role, Action, Consult, and Inform.",
-      D: "It is a rule that lists roles, actions, communications, and interest."
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q27",
-    number: 27,
-    topic: "Requirements Life Cycle Management",
-    text: "Management wants to prioritize requirements by highest likelihood of success. Why would they prioritize with this factor?",
-    options: {
-      A: "They want a fast return on investment.",
-      B: "They want to show early success in the implementation to the stakeholders.",
-      C: "They don't understand the requirements.",
-      D: "They want to avoid penalties or fines due to a pending law."
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q28",
-    number: 28,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Who among the following stakeholders is responsible for writing the project scope?",
-    options: {
-      A: "Domain subject matter expert",
-      B: "Business analyst",
-      C: "Project manager",
-      D: "Sponsor"
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q29",
-    number: 29,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "A task cannot be completed until an inspector signs off on the initial deliverables. This signoff is called a:",
-    options: {
-      A: "Assumption",
-      B: "Dependency",
-      C: "Milestone",
-      D: "Constraint"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q30",
-    number: 30,
-    topic: "Strategy Analysis",
-    text: "Sally is using a BA approach to determine what competition is offering prospective clients to increase revenue. What approach is she using?",
-    options: {
-      A: "Business rules analysis",
-      B: "Functional decomposition",
-      C: "Focus groups",
-      D: "Benchmarking"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q31",
-    number: 31,
-    topic: "Strategy Analysis",
-    text: "Which of the following is an example of an assumption during the assessment of capability gaps?",
-    options: {
-      A: "The project manager believes that her project team members can program in COBOL.",
-      B: "All vendors must have security clearance.",
-      C: "The software must be compatible with the current operating system.",
-      D: "The risk in the project must be quantified."
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q32",
-    number: 32,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which of the following statements best describes the conduct stakeholder analysis task?",
-    options: {
-      A: "This task identifies organizations and lines of business that may be affected.",
-      B: "This task identifies stakeholders who may be affected by a proposed initiative or share a common business need.",
-      C: "This task identifies the organizations that are likely affected by a problem.",
-      D: "This task identifies the people who may be affected by a proposed initiative."
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q33",
-    number: 33,
-    topic: "Requirements Life Cycle Management",
-    text: "When can changes to requirements occur in a business analysis assignment?",
-    options: {
-      A: "Before the project scope statement is created.",
-      B: "Changes to requirements can occur at any time.",
-      C: "After the project's change control system has been enacted.",
-      D: "Before key stakeholders approve the requirements."
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q34",
-    number: 34,
-    topic: "Strategy Analysis",
-    text: "What does the T in SWOT analysis mean?",
-    options: {
-      A: "Trial",
-      B: "Threats",
-      C: "Test",
-      D: "Time"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q35",
-    number: 35,
-    topic: "Strategy Analysis",
-    text: "Management is concerned that their company cannot meet a need with current structure, people, processes, and technology, and asks you to assess this. What process are you completing?",
-    options: {
-      A: "Determining the solution approach",
-      B: "Assessing the capability gaps",
-      C: "Requirements elicitation",
-      D: "Verifying the requirements"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q36",
-    number: 36,
-    topic: "Requirements Life Cycle Management",
-    text: "Management asks you to prioritize requirements based on a cost-benefit analysis for their value. What basis for prioritization represent this?",
-    options: {
-      A: "Business value",
-      B: "Stakeholder agreement",
-      C: "Likelihood of success",
-      D: "Urgency"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q37",
-    number: 37,
-    topic: "Solution Evaluation",
-    text: "Stakeholders use duplicate activities in several software packages to generate client reports. What type of recommendation can you make?",
-    options: {
-      A: "You can address the automation of how the workers perform.",
-      B: "Perform active observation first to understand.",
-      C: "Address the non-functional requirements.",
-      D: "Perform passive observation first."
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q38",
-    number: 38,
-    topic: "Requirements Analysis and Design Definition",
-    text: "Which one of the following statements best describes the requirements analysis processes?",
-    options: {
-      A: "It ensures that analysis and implementation efforts focus on the most critical requirements.",
-      B: "It covers the definition of stakeholder requirements, which describe what a solution must be capable of doing.",
-      C: "It defines all of the work, and only the required work, to complete the project objectives.",
-      D: "It is conformity to requirements and a fitness for use."
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q39",
-    number: 39,
-    topic: "Requirements Analysis and Design Definition",
-    text: "You are writing the solution scope. All of the following are elements you'll need except:",
-    options: {
-      A: "Work breakdown structure",
-      B: "Implementation approach",
-      C: "Solution scope definition",
-      D: "Dependencies"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q40",
-    number: 40,
-    topic: "Strategy Analysis",
-    text: "You are preparing a business case. What is the management horizon?",
-    options: {
-      A: "It is the expected deliverables that will be beneficial.",
-      B: "It is the point in time when the solution will be completed.",
-      C: "It is the duration of each phase until the solution earns a profit.",
-      D: "It is the point in time for the solution to break even on cost and begin earning a profit."
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q41",
-    number: 41,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "What two factors must the business analyst consider when conducting stakeholder analysis?",
-    options: {
-      A: "Politics and influence",
-      B: "Influence and attitude",
-      C: "Attitude and position",
-      D: "Position and politics"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q42",
-    number: 42,
+    id: "q325",
+    number: 325,
     topic: "Elicitation and Collaboration",
-    text: "Donna is leading a brainstorming session and asks participants to come up with at least ten ideas. What is the problem with setting the goal to exactly ten ideas?",
+    text: "The business analyst (BA) is facilitating a requirements workshop with a large group of diverse stakeholders, some of whom are not entirely familiar with the goals and objectives of the project. The BA must understand the business domain, corporate culture, group dynamics, and expected outputs to adequately communicate the __________.",
     options: {
-      A: "The goal should be to come up with as many solutions as possible, not just ten ideas.",
-      B: "The goal should be to generate ten ideas within a set time period.",
-      C: "The goal should be to come up with the best solution.",
-      D: "The goal should be to include everyone's input."
+      A: "change strategy.",
+      B: "requirements prioritization.",
+      C: "elicitation scope.",
+      D: "enterprise architecture."
     },
-    correctAnswer: "A"
+    correctAnswer: "C",
+    babokSection: "Section 4.1: Prepare for Elicitation",
+    explanation: "According to BABOK v3 Section 4.1, understanding domain culture, participant styles, and operational outputs allows BAs to establish and accurately communicate the Elicitation Scope to workshop attendees."
   },
   {
-    id: "q43",
-    number: 43,
-    topic: "Requirements Life Cycle Management",
-    text: "You are ranking stakeholders' risk tolerance. The following represent risk tolerance categories except:",
-    options: {
-      A: "Mitigation",
-      B: "Risk-aversion",
-      C: "Risk-seeking",
-      D: "Neutrality"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q44",
-    number: 44,
+    id: "q326",
+    number: 326,
     topic: "Requirements Analysis and Design Definition",
-    text: "What BA process ensures that requirements specifications and models meet necessary quality standards?",
+    text: "A business analyst (BA) has been writing requirements for a project that has several stakeholders with varying levels of product expertise. What must the BA take into consideration to meet stakeholder perspectives?",
     options: {
-      A: "Identify constraints and assumptions",
-      B: "Validate requirements",
-      C: "Verify requirements",
-      D: "Specify and model requirements"
+      A: "The competency of individual stakeholders",
+      B: "The format of the requirements",
+      C: "The types of diagrams produced",
+      D: "The level of decomposition needed"
     },
-    correctAnswer: "C"
+    correctAnswer: "D",
+    babokSection: "Section 7.1: Specify and Model Requirements",
+    explanation: "Section 7.1 states that requirements must be decomposed and presented at varying levels of detail depending on the stakeholder's domain knowledge and expertise. Highly technical teams need deep decomposition, while business champions require high-level objectives."
   },
   {
-    id: "q45",
-    number: 45,
+    id: "q327",
+    number: 327,
+    topic: "Requirements Analysis and Design Definition",
+    text: "A business analyst (BA) has been coordinating several meetings with stakeholders to reach consensus regarding the solution design to implement a global currency exchange system for an international bank. Consensus has not been reached yet, although BA has great communication skills and is trusted by all stakeholders. The stakeholders formally approved the business need initially. Why is there disagreement?",
+    options: {
+      A: "The requirements are interpreted differently by each stakeholder.",
+      B: "The requirements are incorrectly traced.",
+      C: "The approval authority for the solution is unclear.",
+      D: "More solution alternatives need to be generated."
+    },
+    correctAnswer: "A",
+    babokSection: "Section 7.2: Verify Requirements",
+    explanation: "Under Section 7.2, disagreement often arises when requirements lack clarity or are ambiguous, leading stakeholders to interpret the requirements (and solution designs) in distinct, often conflicting ways, despite agreeing on the initial problem."
+  },
+  {
+    id: "q328",
+    number: 328,
+    topic: "Business Analysis Planning and Monitoring",
+    text: "As part of defining the business analysis approach for a project, the business analyst (BA) identifies the key stakeholders responsible for upcoming activities for the initial phase. The BA emails each of these stakeholders and asks when they can be finished. One stakeholder does not reply, one angrily comments that it is not their job and is too busy, and two respond saying that they do not understand what is being asked of them. What competencies can the BA draw on that would best assist with getting agreement from all these stakeholders?",
+    options: {
+      A: "Personal accountability, time management, demonstrated trustworthiness",
+      B: "Negotiation, conflict resolution, effective communication",
+      C: "Industry knowledge, solution knowledge, organization knowledge",
+      D: "Learning, creative thinking, problem solving"
+    },
+    correctAnswer: "B",
+    babokSection: "Chapter 9: Underlying Competencies",
+    explanation: "This scenario highlights clear communication failures, active role disputes, and resistance. To resolve these friction points, the business analyst must draw upon Negotiation, Conflict Resolution, and Effective Communication (Chapter 9) to align minds."
+  },
+  {
+    id: "q329",
+    number: 329,
     topic: "Strategy Analysis",
-    text: "What does SWOT analysis stand for?",
+    text: "A business analyst (BA) has engaged various groups from across the organization to define the business opportunity a potential project will address. The BA must consolidate the information collected from the groups. The BA should ensure the business needs __________.",
     options: {
-      A: "Strengths, Weaknesses, Opportunities, Time",
-      B: "Stakeholder Weaknesses, Organizational Threats",
-      C: "Stakeholders Weaknesses, Organization, Threats",
-      D: "Strengths, Weaknesses, Opportunities, Threats"
+      A: "are traceable to their source stakeholders.",
+      B: "are articulated from the enterprise perspective.",
+      C: "describe the potential solutions that they will satisfy.",
+      D: "have minimal risk associated with them."
     },
-    correctAnswer: "D"
+    correctAnswer: "C",
+    babokSection: "Section 6.1: Analyze Current State",
+    explanation: "Under Section 6.1, a consolidated business need should describe the problem/opportunity clearly and state the potential solutions (and values) that they will satisfy to guarantee alignment across organizational domains."
   },
   {
-    id: "q46",
-    number: 46,
-    topic: "Requirements Life Cycle Management",
-    text: "Which of the following is an example of a non-negotiable demand during requirements prioritization?",
-    options: {
-      A: "All requirements are ranked as high",
-      B: "Communication",
-      C: "All requirements are prioritized by cost-benefits ratio",
-      D: "Cost"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q47",
-    number: 47,
-    topic: "Requirements Analysis and Design Definition",
-    text: "You ask Virginia to break down the solution scope into smaller components for allocation. What technique is this?",
-    options: {
-      A: "Decision analysis",
-      B: "Business rules analysis",
-      C: "Process modeling",
-      D: "Functional decomposition"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q48",
-    number: 48,
+    id: "q330",
+    number: 330,
     topic: "Elicitation and Collaboration",
-    text: "Stakeholders are dispersed across different geographical locations. How can you serve effectively as a BA?",
+    text: "In requirements elicitation effort, the business analyst (BA) needs to define boundaries for business domains, categorize and create a hierarchy of items, and show data sources and their relationships for specific audiences. Which of the following modeling formats should the BA use?",
     options: {
-      A: "Travel to each of the locations on a regular rotation.",
-      B: "You will need to implement videoconferences.",
-      C: "Add more business analysts in each location.",
-      D: "Ask stakeholders to gather periodically in one locale."
+      A: "Diagrams",
+      B: "Graphics",
+      C: "Matrices",
+      D: "Prototype"
     },
-    correctAnswer: "B"
-  },
-  {
-    id: "q49",
-    number: 49,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which technique can be used to define and document the business analysis approach?",
-    options: {
-      A: "Process modeling",
-      B: "Structured walkthrough",
-      C: "Decision analysis",
-      D: "Control charts"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q50",
-    number: 50,
-    topic: "Requirements Life Cycle Management",
-    text: "Henry begins removing requirements from an allowed list based on cost to meet a budget constraint. What approach is he using?",
-    options: {
-      A: "Parametric",
-      B: "All in",
-      C: "Selective",
-      D: "All out"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q51",
-    number: 51,
-    topic: "Elicitation and Collaboration",
-    text: "You gather stakeholders to share honest opinions and attitudes about help desk service to identify improvements. What type of activity is this?",
-    options: {
-      A: "Stakeholder analysis",
-      B: "Focus groups",
-      C: "Workshop",
-      D: "Root cause analysis"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q52",
-    number: 52,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which stakeholder must approve the business analysis approach to ensure compatibility with other project activities?",
-    options: {
-      A: "Project sponsor",
-      B: "Project manager",
-      C: "Project customer",
-      D: "Change control board"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q53",
-    number: 53,
-    topic: "Requirements Analysis and Design Definition",
-    text: "What technique can be used to define solution boundaries and what a solution will and will not provide?",
-    options: {
-      A: "Interviews with key stakeholders",
-      B: "User stories",
-      C: "Functional decomposition",
-      D: "Scope modeling"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q54",
-    number: 54,
-    topic: "Strategy Analysis",
-    text: "Project A is worth $235,987. Project B is worth $567,000 but carries high risk. The company pursues Project B. What is the opportunity cost?",
-    options: {
-      A: "$331,013",
-      B: "There is not enough information to know as risk is unquantified.",
-      C: "$235,987",
-      D: "$567,000"
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q55",
-    number: 55,
-    topic: "Strategy Analysis",
-    text: "In-house solution costs $78,000 with support of $8,765/mo. Vendor costs $61,000 with support of $7,990/mo." +
-          " How long will it take to break even if internal is chosen vs vendor?",
-    options: {
-      A: "36 months",
-      B: "12 months",
-      C: "6 months",
-      D: "22 months"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q56",
-    number: 56,
-    topic: "Requirements Life Cycle Management",
-    text: "Management wants to prioritize requirements with maximum risk first to minimize loss in case of project failure. What prioritization approach is this?",
-    options: {
-      A: "Implementation difficulty",
-      B: "Business or technical risk",
-      C: "Likelihood of success",
-      D: "Relationship to other requirements"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q57",
-    number: 57,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "What is a stakeholder map?",
-    options: {
-      A: "Visual diagram showing connections between positive and negative stakeholders.",
-      B: "Visual diagram illustrating geographical locations of stakeholders.",
-      C: "Visual diagram listing RACI responsibilities.",
-      D: "Visual diagram showing relationship of stakeholders to the solution and to one another."
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q58",
-    number: 58,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which conduct stakeholder analysis technique serves as a useful starting point for identifying actor roles?",
-    options: {
-      A: "Scope modeling",
-      B: "Requirements workshops",
-      C: "Scenario/cases and user stories",
-      D: "Interviews"
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q59",
-    number: 59,
-    topic: "Strategy Analysis",
-    text: "What document helps management make a go/no-go decision on investing and moving forward with a project?",
-    options: {
-      A: "Feasibility study",
-      B: "Project scope",
-      C: "Solution scope",
-      D: "Business case"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q60",
-    number: 60,
-    topic: "Requirements Life Cycle Management",
-    text: "Requirements are ranked according to relevant laws and regulations. What type of requirements prioritization is this?",
-    options: {
-      A: "Regulatory ranking",
-      B: "Business value ranking",
-      C: "Constraint ranking",
-      D: "Risk ranking"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q61",
-    number: 61,
-    topic: "Strategy Analysis",
-    text: "Which of the following determines if information used for risk analysis is probable, accurate, or high quality?",
-    options: {
-      A: "Risk Urgency Assessment",
-      B: "Risk Probability and Impact Assessment",
-      C: "Risk Categorization",
-      D: "Risk Data Quality Assessment"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q62",
-    number: 62,
-    topic: "Strategy Analysis",
-    text: "All of the following techniques are acceptable for identifying the solution approach except which one?",
-    options: {
-      A: "Benchmarking",
-      B: "Decision analysis",
-      C: "Risk analysis",
-      D: "Brainstorming"
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q63",
-    number: 63,
-    topic: "Strategy Analysis",
-    text: "Which of the following definitions best describes the solution approach?",
-    options: {
-      A: "It is the documentation and control of changes to product scope.",
-      B: "Defines the general approach taken to create or acquire new capabilities required to meet the business need.",
-      C: "It is an uncertain event or condition that has a positive or negative impact.",
-      D: "Decomposes the project scope into smaller deliverables."
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q64",
-    number: 64,
-    topic: "Requirements Analysis and Design Definition",
-    text: "What is the user stories approach for requirements organization?",
-    options: {
-      A: "Stakeholders' experiences equate to the stakeholder requirements.",
-      B: "Stakeholders are interviewed and experiences are recorded.",
-      C: "Stakeholders' objectives are described to identify requirements the solution will support.",
-      D: "Stakeholders are interviewed and stories are recorded as part of the requirements."
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q65",
-    number: 65,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which of the following processes ensures that team members complete work according to the project plan?",
-    options: {
-      A: "Project time management",
-      B: "Project scope management",
-      C: "Quality management plan",
-      D: "Quality control"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q66",
-    number: 66,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which of the following terms is not a business analysis planning and monitoring approach?",
-    options: {
-      A: "Structured walkthroughs",
-      B: "Decision analysis",
-      C: "Requirements elicitation",
-      D: "Process modeling"
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q67",
-    number: 67,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which technique identifies underlying causes of failures or work difficulties during performance management?",
-    options: {
-      A: "Problem tracking",
-      B: "Pareto charts",
-      C: "Trend analysis",
-      D: "Root cause analysis"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q68",
-    number: 68,
-    topic: "Strategy Analysis",
-    text: "What document defines the business needs, identifies key stakeholders, and describes the positive impact of the solution?",
-    options: {
-      A: "Project charter",
-      B: "Project scope statement",
-      C: "Solution scope",
-      D: "Vision statement"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q69",
-    number: 69,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "In a plan-driven approach to business analysis, what characteristic must be true of changes?",
-    options: {
-      A: "All changes occur if they are less than an agreed factor, such as 10% of overall cost.",
-      B: "All changes only occur if they are less than 10% of the cost.",
-      C: "All changes only occur if they are genuinely necessary.",
-      D: "Changes are generally not permitted in the plan-driven approach."
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q70",
-    number: 70,
-    topic: "Requirements Analysis and Design Definition",
-    text: "All of the following are solution components except which one?",
-    options: {
-      A: "Assessment of proposed solution",
-      B: "Business processes to be performed and managed",
-      C: "Business policies and business rules",
-      D: "Software applications and components used"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q71",
-    number: 71,
-    topic: "Requirements Life Cycle Management",
-    text: "Which of the following is not one of the three primary reasons why trace requirements is useful?",
-    options: {
-      A: "Impact analysis",
-      B: "Requirements coverage",
-      C: "Requirements allocation",
-      D: "Quality control"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q72",
-    number: 72,
-    topic: "Requirements Life Cycle Management",
-    text: "Why would business analysts complete requirements prioritization?",
-    options: {
-      A: "To determine which requirements should be completed first.",
-      B: "To determine which requirements should not be completed at all.",
-      C: "To determine which requirements carry the most risk.",
-      D: "To identify who created what requirement based on position."
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q73",
-    number: 73,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which type of business analysis approach has the most business analysis work at the beginning of the project or start of a phase?",
-    options: {
-      A: "Change-driven approach",
-      B: "Value-driven approach",
-      C: "Plan-driven approach",
-      D: "Requirements-driven approach"
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q74",
-    number: 74,
-    topic: "Strategy Analysis",
-    text: "A customer demands that a process solution must not cost more than $300,000 to implement and support for one year. What does the $300,000 represent?",
-    options: {
-      A: "Solution cost",
-      B: "Budget",
-      C: "Requirements",
-      D: "Constraint"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q75",
-    number: 75,
-    topic: "Requirements Life Cycle Management",
-    text: "What is scope creep?",
-    options: {
-      A: "The scope grows slightly larger as more requirements, often unneeded, are added.",
-      B: "The scope slips on the schedule, delaying delivery.",
-      C: "Gold plating.",
-      D: "The scope shifts from the original intent of the business case."
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q76",
-    number: 76,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "What element of the plan business analysis process affects the business analysis duties that need to be performed?",
-    options: {
-      A: "The experience of the business analyst",
-      B: "The experience of the project manager",
-      C: "The expected completion date",
-      D: "The type of project or initiative"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q77",
-    topic: "Business Analysis Planning and Monitoring",
-    number: 77,
-    text: "In a plan-driven approach, what type of communication will likely be required?",
-    options: {
-      A: "Face-to-face",
-      B: "Chain of command",
-      C: "Formal",
-      D: "Ad hoc"
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q78",
-    number: 78,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which of the following is not an example of a business analysis work product?",
-    options: {
-      A: "Requirements documentation",
-      B: "Interview questions and notes",
-      C: "Meeting agendas and minutes",
-      D: "Presentation slides"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q79",
-    number: 79,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which of the following statements best describes the change-driven approach?",
-    options: {
-      A: "Favors defining requirements through experimentation.",
-      B: "Does not define requirements until after a solution is identified.",
-      C: "Favors defining requirements using standardized templates.",
-      D: "Favors defining requirements through team interaction."
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q80",
-    number: 80,
-    topic: "Strategy Analysis",
-    text: "Jane notices some employees perform customer-facing activities in a different format than other workers during passive observation. Is this a potential improvement opportunities problem?",
-    options: {
-      A: "Yes, customers could become confused or frustrated by varying approaches.",
-      B: "No, unless there is a drop in sales.",
-      C: "Yes, enterprise environmental factors call for absolute consistency.",
-      D: "No, unless customers complain."
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q81",
-    number: 81,
-    topic: "Strategy Analysis",
-    text: "A customer requests new software that helps them collect client info. In Strategy Analysis, this business need stems from which generation approach?",
-    options: {
-      A: "Bottom-up",
-      B: "External drivers",
-      C: "Middle management",
-      D: "Top-down"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q82",
-    number: 82,
-    topic: "Requirements Analysis and Design Definition",
-    text: "You elect to identify the solution scope and then break it into smaller work products. What technique is this?",
-    options: {
-      A: "Interface analysis",
-      B: "Scope modeling",
-      C: "Vision statement creation",
-      D: "Functional decomposition"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q83",
-    number: 83,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "You are the analyst for a solution that has 435 stakeholders. How many communication channels exist?",
-    options: {
-      A: "188,790",
-      B: "189,225",
-      C: "94,395",
-      D: "435"
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q84",
-    number: 84,
-    topic: "Requirements Analysis and Design Definition",
-    text: "Each requirement should have eight characteristics: cohesive, complete, consistent, correct, and feasible. Which of the following is not a characteristic of a requirement?",
-    options: {
-      A: "Functional",
-      B: "Modifiable",
-      C: "Unambiguous",
-      D: "Testable"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q85",
-    number: 85,
-    topic: "Strategy Analysis",
-    text: "What approach can you use to assess business goals and their validity and longevity?",
-    options: {
-      A: "Functional decomposition",
-      B: "POLDAT",
-      C: "SMART",
-      D: "Root cause analysis"
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q86",
-    number: 86,
-    topic: "Requirements Analysis and Design Definition",
-    text: "requirements aren't complex individually, but what critical factor adds complexity to the overall requirements solution?",
-    options: {
-      A: "Relationships among the requirements",
-      B: "Management in the project",
-      C: "Stakeholders in the project",
-      D: "Cost and schedule constraints"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q87",
-    number: 87,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Which of the following is an estimate based on past projects to predict the current cost and/or duration?",
-    options: {
-      A: "Current estimate",
-      B: "Past project cost",
-      C: "Past estimate",
-      D: "Top-down estimate"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q88",
-    number: 88,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "Your project has 65 stakeholders. How many communication channels exist based on the number of stakeholders?",
-    options: {
-      A: "2080",
-      B: "4160",
-      C: "4225",
-      D: "65"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q89",
-    number: 89,
-    topic: "Requirements Analysis and Design Definition",
-    text: "Which model type categorizes and describes the people who directly interact with a solution?",
-    options: {
-      A: "Rules",
-      B: "User classes, profiles, or roles",
-      C: "Concepts and relationships",
-      D: "Events"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q90",
-    number: 90,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "When is stakeholder analysis performed?",
-    options: {
-      A: "As soon as the project charter is created.",
-      B: "As soon as the project sponsor is named.",
-      C: "As soon as a business need is identified.",
-      D: "As soon as a business solution is identified."
-    },
-    correctAnswer: "C"
-  },
-  {
-    id: "q91",
-    number: 91,
-    topic: "Strategy Analysis",
-    text: "You are preparing a business case. Which of the following is not an input that will help you write it?",
-    options: {
-      A: "Feasibility study",
-      B: "Stakeholder concerns",
-      C: "Assumptions and constraints",
-      D: "Business need"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q92",
-    number: 92,
-    topic: "Strategy Analysis",
-    text: "You determined your organization does not have the necessary resources and technology to seize an opportunity. What is the most likely course of action?",
-    options: {
-      A: "Hire additional resources.",
-      B: "Launch a new project.",
-      C: "Hire contractors.",
-      D: "Move onto the next opportunity."
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q93",
-    number: 93,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "What plan includes scope of work, Work Breakdown Structure, activity list, and estimates?",
-    options: {
-      A: "Project management plan",
-      B: "Implementation plan",
-      C: "Requirements management plan",
-      D: "Business analysis plan"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q94",
-    number: 94,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "What is a business analysis methodology?",
-    options: {
-      A: "A formalized and repeatable business analysis approach.",
-      B: "A short term endeavor to create a unique product or service.",
-      C: "An unproven approach that the analyst believes will work.",
-      D: "A formalized plan that describes elicitation steps."
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q95",
-    number: 95,
-    topic: "Requirements Analysis and Design Definition",
-    text: "Software development is your core business and many projects are similar. What can streamline the requirements gathering process?",
-    options: {
-      A: "Implement a requirements re-use repository",
-      B: "Implement project template",
-      C: "Implement a requirements gathering form",
-      D: "Implement scope solution models"
-    },
-    correctAnswer: "A"
-  },
-  {
-    id: "q96",
-    number: 96,
-    topic: "Requirements Analysis and Design Definition",
-    text: "Which of the following statements best defines the implementation approach element?",
-    options: {
-      A: "Described in terms of major features and functions included.",
-      B: "Defines major business and technical dependencies that impose constraints.",
-      C: "Describes new capabilities required to meet the business need.",
-      D: "Describes how the chosen solution approach will deliver the solution scope."
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q97",
-    number: 97,
-    topic: "Strategy Analysis",
-    text: "A business case must include projected costs and benefits, as well as how they will be assessed. What term matches this?",
-    options: {
-      A: "Cost-benefits justification",
-      B: "Risk assessment",
-      C: "SWOT analysis",
-      D: "Results measurements"
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q98",
-    number: 98,
-    topic: "Business Analysis Planning and Monitoring",
-    text: "What is the danger of overlooking a key set of stakeholders during analysis?",
-    options: {
-      A: "New stakeholders must pay for requirements they inject.",
-      B: "New stakeholders spend extra time learning about the project.",
-      C: "New stakeholders are excluded from important design choices.",
-      D: "New stakeholders may have requirements that necessitate additions or nullify other requirements."
-    },
-    correctAnswer: "D"
-  },
-  {
-    id: "q99",
-    number: 99,
-    topic: "Strategy Analysis",
-    text: "Which one of the following should Rachel not include in her business case?",
-    options: {
-      A: "Time to break even",
-      B: "Opportunities to prioritize requirements",
-      C: "Follow-on opportunities",
-      D: "Qualitative and quantitative benefits"
-    },
-    correctAnswer: "B"
-  },
-  {
-    id: "q100",
-    number: 100,
-    topic: "Requirements Life Cycle Management",
-    text: "What does the MoSCoW prioritization acronym stand for?",
-    options: {
-      A: "Must, Should, Could, Would",
-      B: "Must, Should, Could, Won't",
-      C: "Mission, Schedule, Cost, Willingness",
-      D: "Must not, Should not, Could not, Will not"
-    },
-    correctAnswer: "B"
+    correctAnswer: "A",
+    babokSection: "Section 7.1: Specify and Model Requirements",
+    explanation: "Under Section 7.1, Diagrams are the core modeling format used to categorize hierarchies, establish functional organizational boundaries, and map out entity relationship structures clearly for diverse stakeholders."
   }
 ];

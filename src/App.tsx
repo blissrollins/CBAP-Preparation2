@@ -82,17 +82,6 @@ export default function App() {
   const [userAnswers, setUserAnswers] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
   const [flaggedQuestions, setFlaggedQuestions] = useState<Record<string, boolean>>({});
   
-  // Custom upload status
-  const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [uploadProgress, setUploadProgress] = useState<string>("");
-  const [uploadError, setUploadError] = useState<string | null>(null);
-
-  // Verification status
-  const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
-  const [isVerifying, setIsVerifying] = useState<boolean>(false);
-  const [verificationError, setVerificationError] = useState<string | null>(null);
-  const [activeVerifiedId, setActiveVerifiedId] = useState<string | null>(null);
-
   // Exam simulator mechanics
   const [examStarted, setExamStarted] = useState<boolean>(false);
   const [examSubmitted, setExamSubmitted] = useState<boolean>(false);
@@ -103,11 +92,6 @@ export default function App() {
   const [selectedTopic, setSelectedTopic] = useState<string>("All Topics");
   const [questionFilter, setQuestionFilter] = useState<"all" | "unanswered" | "flagged" | "incorrect">("all");
   const [showQuestionsGrid, setShowQuestionsGrid] = useState<boolean>(false);
-
-  // Bulk pre-fetching states
-  const [isBulkFetching, setIsBulkFetching] = useState<boolean>(false);
-  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number; successCount: number } | null>(null);
-  const bulkCancelRef = useRef<boolean>(false);
 
   // Drag and drop state
   const [dragActive, setDragDropActive] = useState<boolean>(false);
@@ -288,15 +272,6 @@ export default function App() {
     };
   }, [sessionMode, examStarted, examSubmitted]);
 
-  // Reset verification sidebar details whenever the active question slides
-  useEffect(() => {
-    setVerificationResult(null);
-    setVerificationError(null);
-    setActiveVerifiedId(null);
-  }, [currentIndex]);
-
-
-
   // Re-map the current slide index safely if filter changes or returns empty
   useEffect(() => {
     if (filteredQuestions.length > 0 && currentIndex >= filteredQuestions.length) {
@@ -436,76 +411,6 @@ export default function App() {
       [id]: !prev[id],
     }));
   };
-
-  const handleVerifyAnswer = async () => {
-    if (!activeQuestion) return;
-    setIsVerifying(true);
-    setVerificationError(null);
-    setVerificationResult(null);
-    setActiveVerifiedId(activeQuestion.id);
-
-    try {
-      const response = await fetch("/api/verify-answer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: activeQuestion.text,
-          options: activeQuestion.options,
-          correctAnswer: activeQuestion.correctAnswer,
-          userSelected: userAnswers[activeQuestion.id] || null
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to verify on the server. Status Code: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setVerificationResult(data);
-
-      const originalId = activeQuestion.id.split("-index-")[0];
-
-      // Backfill the master list / localStorage cache
-      setQuestions((prevQuestions) => 
-        prevQuestions.map((q) => 
-          q.id === originalId 
-            ? { 
-                ...q, 
-                explanation: data.explanation, 
-                babokSection: data.babokSection,
-                topic: data.knowledgeArea || q.topic,
-                correctAnswer: data.correctAnswer || q.correctAnswer
-              } 
-            : q
-        )
-      );
-
-      // Backfill current active state list
-      setActiveSessionQuestions((prevActive) => 
-        prevActive.map((q) => 
-          q.id === activeQuestion.id 
-            ? { 
-                ...q, 
-                explanation: data.explanation, 
-                babokSection: data.babokSection,
-                topic: data.knowledgeArea || q.topic,
-                correctAnswer: data.correctAnswer || q.correctAnswer
-              } 
-            : q
-        )
-      );
-
-    } catch (e: any) {
-      console.error(e);
-      setVerificationError(e.message || "An error occurred during verification.");
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-
-
 
   const handleResetApp = () => {
     if (window.confirm("Are you sure you want to clear your current progress and restore the default BABOK v3 Question Bank?")) {
@@ -1187,114 +1092,73 @@ export default function App() {
                       <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
-
-                </div>
-
-                {/* Sub Validation Panel triggering Gemini verify on demand */}
-                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/70 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors duration-300">
-                  <div className="flex gap-3 items-center">
-                    <div className="h-10 w-10 flex items-center justify-center shrink-0 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 text-indigo-600 dark:text-indigo-400">
-                      <Sparkles className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 tracking-wide flex items-center gap-1.5">
-                        BABOK V3 Deep AI verification
-                        <span className="text-[9px] bg-indigo-100/60 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/45 dark:border-indigo-900/45 px-1.5 py-0.2 rounded-full uppercase tracking-wider font-semibold">
-                          Real-time
-                        </span>
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Query the high-precision validation compiler to index BABOK V3 citations, sections, and reasoning details.</p>
-                    </div>
-                  </div>
-
-                  <button
-                    id="btn-trigger-ai-verify"
-                    onClick={handleVerifyAnswer}
-                    disabled={isVerifying}
-                    className="flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs tracking-wider shadow-md shadow-indigo-100 dark:shadow-none transition w-full sm:w-auto"
-                  >
-                    {isVerifying ? (
-                      <>
-                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                        Analyzing Guide...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-3.5 w-3.5" />
-                        Verify with BABOK Guide
-                      </>
-                    )}
-                  </button>
                 </div>
 
               </div>
 
-              {/* Sidebar Panel for verification info */}
+              {/* Sidebar Panel for local real-time verification info */}
               <div className="md:col-span-4 space-y-6">
                 
                 {/* Active sidebar verified loader card */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm shadow-slate-100 dark:shadow-none relative min-h-[300px] flex flex-col justify-between transition-colors duration-300">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm shadow-slate-100 dark:shadow-none min-h-[300px] flex flex-col justify-between transition-colors duration-300">
                   <div>
-                    <h3 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-150 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800/80 flex items-center gap-2">
-                      <BookOpen className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                    <h3 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-100 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800/80 flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-indigo-650 dark:text-indigo-400" />
                       BABOK Section Citation
                     </h3>
 
-                    {isVerifying ? (
-                      <div className="space-y-4 py-8 text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-650 dark:border-indigo-400 border-t-transparent mx-auto"></div>
-                        <p className="text-xs text-indigo-600 dark:text-indigo-405 font-semibold tracking-wide">Consulting BABOK V3 official guides...</p>
-                        <div className="space-y-1.5 px-4">
-                          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded animate-pulse"></div>
-                          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-5/6 mx-auto"></div>
-                          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-2/3 mx-auto"></div>
-                        </div>
-                      </div>
-                    ) : verificationResult ? (
+                    {userAnswers[activeQuestion.id] ? (
                       <motion.div 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className="space-y-4 text-xs text-slate-600 dark:text-slate-300"
                       >
                         <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-                          <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-mono">
-                            <span>Topic / Knowledge Area</span>
-                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{verificationResult.confidenceScore}% Match</span>
+                          <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-mono font-bold">
+                            <span>Knowledge Area / Topic</span>
+                            {userAnswers[activeQuestion.id] === activeQuestion.correctAnswer ? (
+                              <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                <Check className="h-3 w-3" /> Correct
+                              </span>
+                            ) : (
+                              <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1">
+                                <X className="h-3 w-3" /> Incorrect
+                              </span>
+                            )}
                           </div>
                           <div className="text-slate-800 dark:text-slate-100 font-semibold text-xs tracking-wide">
-                            {verificationResult.knowledgeArea}
+                            {activeQuestion.topic || "Core Topic"}
                           </div>
-                          <div className="text-[10px] text-indigo-605 dark:text-indigo-400 font-mono uppercase bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-100 dark:border-indigo-900/55 inline-block font-semibold">
-                            {verificationResult.babokSection}
-                          </div>
+                          {activeQuestion.babokSection && (
+                            <div className="text-[10px] text-indigo-650 dark:text-indigo-405 font-mono uppercase bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded border border-indigo-100 dark:border-indigo-900/55 inline-block font-semibold">
+                              {activeQuestion.babokSection}
+                            </div>
+                          )}
                         </div>
 
                         <div className="space-y-2">
-                          <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400 dark:text-slate-550 font-bold">Analysis & Proof:</div>
-                          <div className="text-slate-600 dark:text-slate-300 leading-relaxed font-sans prose dark:prose-invert max-h-72 overflow-y-auto pr-1">
-                            {verificationResult.explanation}
-                          </div>
+                          <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400 dark:text-slate-550 font-bold">BABOK Verification Study Guide:</div>
+                          <p className="text-slate-605 dark:text-slate-300 leading-relaxed font-sans max-h-72 overflow-y-auto pr-1">
+                            {activeQuestion.explanation || "No explanation preloaded for this question pool entry."}
+                          </p>
                         </div>
 
                       </motion.div>
-                    ) : verificationError ? (
-                      <div className="p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 rounded-2xl text-rose-800 dark:text-rose-300 text-xs">
-                        <p className="font-semibold mb-1">Guide Connection Refused</p>
-                        <p>{verificationError}</p>
-                      </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-center py-16 px-4">
-                        <HelpCircle className="h-10 w-10 text-slate-350 dark:text-slate-600 mb-3" />
-                        <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold mb-1">Citations Pending</p>
-                        <p className="text-[11px] text-slate-400 dark:text-slate-500">Pick an option and click <strong className="text-slate-600 dark:text-slate-300 font-semibold">Verify answer with BABOK Guide</strong> to execute deep validation checks on this question.</p>
+                        <HelpCircle className="h-10 w-10 text-slate-350 dark:text-slate-600 mb-3 animate-pulse" />
+                        <p className="text-xs text-slate-700 dark:text-slate-300 font-bold mb-1">Study Guide Pending</p>
+                        <p className="text-[11px] text-slate-450 dark:text-slate-500 leading-normal">
+                          Select your answer to immediately unlock the high-precision **BABOK v3 citations and comparative analysis proofs** here.
+                        </p>
                       </div>
                     )}
                   </div>
 
                   <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500 font-bold">
-                    <span>Validation engine 3.5</span>
+                    <span>BABOK Guide v3</span>
                     <span className="flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Active
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500"></span> Verified Sync
                     </span>
                   </div>
                 </div>
